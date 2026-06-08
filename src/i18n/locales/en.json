@@ -1,0 +1,110 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading…",
+    "saved": "Saved",
+    "saving": "Saving…",
+    "error": "Something went wrong.",
+    "retry": "Try again",
+    "back": "Back",
+    "continue": "Continue",
+    "signOut": "Sign out",
+    "language": "Language"
+  },
+  "nav": {
+    "home": "Home",
+    "profile": "Profile",
+    "engagements": "Engagements",
+    "availability": "Availability",
+    "ratings": "Ratings",
+    "preview": "Public preview"
+  },
+  "auth": {
+    "loginTitle": "Sign in to Talent Dashboard",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signInGoogle": "Sign in with Google",
+    "forgotPassword": "Forgot password?",
+    "forgotPasswordTitle": "Reset your password",
+    "forgotPasswordHint": "Enter your email and we'll send reset instructions.",
+    "sendResetLink": "Send reset link",
+    "resetPasswordTitle": "Choose a new password",
+    "resetPassword": "Reset password",
+    "accessDeniedTitle": "Access denied",
+    "accessDeniedBody": "This dashboard is for talent applicants and approved performers only.",
+    "backToMain": "Back to MyTicket"
+  },
+  "application": {
+    "step_identity": "Identity",
+    "step_profile": "Profile",
+    "step_verification": "Verification",
+    "step_review": "Review",
+    "submit": "Submit for review",
+    "status_submitted": "Your application is under review.",
+    "status_rejected": "Your application was not approved.",
+    "status_approved": "Congratulations — you're approved!",
+    "status_provisioning": "Your profile is being set up…",
+    "editApplication": "Edit application",
+    "resubmit": "Resubmit",
+    "withdraw": "Withdraw application",
+    "stageName": "Stage name",
+    "contactEmail": "Contact email",
+    "contactPhone": "Contact phone",
+    "bio": "Bio",
+    "region": "Region",
+    "city": "City",
+    "travelReady": "Willing to travel",
+    "locationPublic": "Show location publicly",
+    "qualityDisclaimer": "I accept the quality disclaimer",
+    "incomplete": "Please complete all required fields before submitting."
+  },
+  "profile": {
+    "title": "Your profile",
+    "stageName": "Stage name",
+    "bio": "Bio",
+    "website": "Website",
+    "instagram": "Instagram handle",
+    "travelReady": "Willing to travel",
+    "locationPublic": "Show location publicly",
+    "readOnlyImage": "Contact support to update your profile image.",
+    "publicSlug": "Public profile",
+    "saveChanges": "Save changes"
+  },
+  "availability": {
+    "title": "Availability",
+    "available": "Available",
+    "reserved": "Reserved",
+    "availableHint": "Organizers can discover and contact you in the marketplace.",
+    "reservedHint": "You appear as booked. Switch back when you're open to new requests."
+  },
+  "engagements": {
+    "title": "Engagements",
+    "empty": "No engagement requests yet.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "complete": "Mark complete",
+    "sendMessage": "Send",
+    "messagePlaceholder": "Write a message…",
+    "declineReason": "Reason (optional)",
+    "status_pending": "Pending",
+    "status_accepted": "Accepted",
+    "status_declined": "Declined",
+    "status_cancelled": "Cancelled",
+    "status_closed": "Closed"
+  },
+  "ratings": {
+    "title": "Ratings",
+    "empty": "Perform at events to receive ratings from organizers.",
+    "average": "Average rating",
+    "count": "{{count}} ratings"
+  },
+  "errors": {
+    "unauthorized": "Your session expired. Please sign in again.",
+    "forbidden": "You don't have permission to do that.",
+    "notFound": "We couldn't find that resource.",
+    "validation": "Please correct the highlighted fields.",
+    "network": "Network error. Check your connection and try again."
+  }
+}

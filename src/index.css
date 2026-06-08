@@ -1,0 +1,94 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "Space Grotesk", system-ui, sans-serif;
+
+  --color-coral: #ff6b4a;
+  --color-coral-light: #ffb8a8;
+  --color-coral-dark: #cc4a2e;
+
+  --color-lemon: #f5e642;
+  --color-lemon-light: #fdf4a0;
+  --color-lemon-dark: #c9bc1a;
+
+  --color-lime: #baff39;
+  --color-sky: #a8c9f0;
+  --color-mint: #4dffc3;
+  --color-mint-dark: #1fa87a;
+  --color-amber: #f4a05a;
+  --color-indigo: #3355ff;
+  --color-lavender: #c4b5f4;
+  --color-teal: #6ecfb0;
+  --color-blush: #f9b8c4;
+
+  --color-ink: #0d0d0d;
+  --color-ink-90: #1a1a1a;
+  --color-ink-80: #2e2e2e;
+  --color-ink-60: #555555;
+  --color-ink-40: #888888;
+  --color-ink-20: #bbbbbb;
+  --color-ink-10: #e5e5e5;
+  --color-ink-5: #f5f5f5;
+
+  --color-surface-page: #ffffff;
+  --color-surface-tint: #f5f5f5;
+  --color-surface-warm: #f0ede6;
+  --color-surface-dark: #0d0d0d;
+
+  --shadow-card-sm: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-card-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-card-lg: 0 12px 40px rgba(0, 0, 0, 0.1);
+  --shadow-card-xl: 0 20px 48px rgba(0, 0, 0, 0.12);
+}
+
+@utility line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+@utility shadow-card-sm {
+  box-shadow: var(--shadow-card-sm);
+}
+
+@utility shadow-card-md {
+  box-shadow: var(--shadow-card-md);
+}
+
+@utility shadow-card-lg {
+  box-shadow: var(--shadow-card-lg);
+}
+
+@utility shadow-card-xl {
+  box-shadow: var(--shadow-card-xl);
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  html {
+    font-family: var(--font-sans);
+  }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--color-surface-page);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

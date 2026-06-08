@@ -1,0 +1,110 @@
+{
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "loading": "جارٍ التحميل…",
+    "saved": "تم الحفظ",
+    "saving": "جارٍ الحفظ…",
+    "error": "حدث خطأ ما.",
+    "retry": "إعادة المحاولة",
+    "back": "رجوع",
+    "continue": "متابعة",
+    "signOut": "تسجيل الخروج",
+    "language": "اللغة"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "profile": "الملف الشخصي",
+    "engagements": "الطلبات",
+    "availability": "التوفر",
+    "ratings": "التقييمات",
+    "preview": "معاينة عامة"
+  },
+  "auth": {
+    "loginTitle": "تسجيل الدخول إلى لوحة المواهب",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "signIn": "تسجيل الدخول",
+    "signInGoogle": "تسجيل الدخول عبر Google",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "forgotPasswordTitle": "إعادة تعيين كلمة المرور",
+    "forgotPasswordHint": "أدخل بريدك الإلكتروني وسنرسل تعليمات إعادة التعيين.",
+    "sendResetLink": "إرسال رابط إعادة التعيين",
+    "resetPasswordTitle": "اختر كلمة مرور جديدة",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "accessDeniedTitle": "الوصول مرفوض",
+    "accessDeniedBody": "هذه اللوحة مخصصة لمقدّمي طلبات المواهب والفنانين المعتمدين فقط.",
+    "backToMain": "العودة إلى MyTicket"
+  },
+  "application": {
+    "step_identity": "الهوية",
+    "step_profile": "الملف",
+    "step_verification": "التحقق",
+    "step_review": "المراجعة",
+    "submit": "إرسال للمراجعة",
+    "status_submitted": "طلبك قيد المراجعة.",
+    "status_rejected": "لم يتم قبول طلبك.",
+    "status_approved": "تهانينا — تمت الموافقة!",
+    "status_provisioning": "جارٍ إعداد ملفك الشخصي…",
+    "editApplication": "تعديل الطلب",
+    "resubmit": "إعادة الإرسال",
+    "withdraw": "سحب الطلب",
+    "stageName": "الاسم الفني",
+    "contactEmail": "البريد للتواصل",
+    "contactPhone": "الهاتف للتواصل",
+    "bio": "نبذة",
+    "region": "المنطقة",
+    "city": "المدينة",
+    "travelReady": "مستعد للسفر",
+    "locationPublic": "إظهار الموقع علناً",
+    "qualityDisclaimer": "أوافق على إخلاء المسؤولية عن الجودة",
+    "incomplete": "يرجى إكمال جميع الحقول المطلوبة قبل الإرسال."
+  },
+  "profile": {
+    "title": "ملفك الشخصي",
+    "stageName": "الاسم الفني",
+    "bio": "نبذة",
+    "website": "الموقع الإلكتروني",
+    "instagram": "حساب إنستغرام",
+    "travelReady": "مستعد للسفر",
+    "locationPublic": "إظهار الموقع علناً",
+    "readOnlyImage": "تواصل مع الدعم لتحديث صورة الملف الشخصي.",
+    "publicSlug": "الملف العام",
+    "saveChanges": "حفظ التغييرات"
+  },
+  "availability": {
+    "title": "التوفر",
+    "available": "متاح",
+    "reserved": "محجوز",
+    "availableHint": "يمكن للمنظمين اكتشافك والتواصل معك في السوق.",
+    "reservedHint": "تظهر كمحجوز. عد إلى متاح عندما تكون مستعداً لطلبات جديدة."
+  },
+  "engagements": {
+    "title": "الطلبات",
+    "empty": "لا توجد طلبات تعاقد بعد.",
+    "accept": "قبول",
+    "decline": "رفض",
+    "complete": "إتمام",
+    "sendMessage": "إرسال",
+    "messagePlaceholder": "اكتب رسالة…",
+    "declineReason": "السبب (اختياري)",
+    "status_pending": "قيد الانتظار",
+    "status_accepted": "مقبول",
+    "status_declined": "مرفوض",
+    "status_cancelled": "ملغى",
+    "status_closed": "مغلق"
+  },
+  "ratings": {
+    "title": "التقييمات",
+    "empty": "قدّم عروضاً في الفعاليات لتحصل على تقييمات من المنظمين.",
+    "average": "متوسط التقييم",
+    "count": "{{count}} تقييم"
+  },
+  "errors": {
+    "unauthorized": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.",
+    "forbidden": "ليس لديك صلاحية للقيام بذلك.",
+    "notFound": "تعذّر العثور على هذا المورد.",
+    "validation": "يرجى تصحيح الحقول المميزة.",
+    "network": "خطأ في الشبكة. تحقق من اتصالك وحاول مرة أخرى."
+  }
+}
