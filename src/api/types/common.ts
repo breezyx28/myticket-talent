@@ -42,6 +42,10 @@ export interface PaginationQuery {
   per_page?: number;
 }
 
+export interface ListEngagementsQuery extends PaginationQuery {
+  status?: string;
+}
+
 export interface ResourceEnvelope<T> {
   data: T;
 }

@@ -65,12 +65,15 @@ export interface RoleApplicationTalentDetail {
   contact_email?: string | null;
   contact_phone?: string | null;
   saudi_region_id?: Id | null;
+  region_id?: Id | null;
   city?: Id | null;
+  city_id?: Id | null;
   travel_ready?: boolean | null;
   location_public?: boolean | null;
   certificate_name?: string | null;
   accepted_quality_disclaimer?: boolean | null;
   profile_image?: string | null;
+  profile_image_url?: string | null;
   media?: TalentApplicationMedia[];
   [key: string]: unknown;
 }

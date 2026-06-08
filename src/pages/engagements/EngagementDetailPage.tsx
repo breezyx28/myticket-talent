@@ -4,24 +4,34 @@ import {
   useAcceptEngagementMutation,
   useCompleteEngagementMutation,
   useDeclineEngagementMutation,
+  useListEngagementMessagesQuery,
   useListEngagementsQuery,
   usePostEngagementMessageMutation,
 } from '@/api/endpoints';
 import { readApiErrorMessage } from '@/lib/apiErrors';
 import { declineEngagementSchema, engagementMessageSchema } from '@/schemas/engagement';
+import type { ListEngagementsQuery } from '@/api/types/common';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 
+const LIST_QUERY: ListEngagementsQuery = { page: 1, per_page: 50 };
+
 export function EngagementDetailPage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
-  const { data: engagementsPaged, isLoading } = useListEngagementsQuery({ page: 1, per_page: 50 });
+  const { data: engagementsPaged, isLoading } = useListEngagementsQuery(LIST_QUERY);
 
   const engagement = useMemo(
     () => (engagementsPaged?.data ?? []).find((e) => String(e.id) === id),
     [engagementsPaged, id],
   );
+
+  const {
+    data: messages = [],
+    isLoading: messagesLoading,
+    isFetching: messagesFetching,
+  } = useListEngagementMessagesQuery({ id: engagement?.id ?? '' }, { skip: !engagement });
 
   const [message, setMessage] = useState('');
   const [declineReason, setDeclineReason] = useState('');
@@ -36,7 +46,7 @@ export function EngagementDetailPage() {
     if (!engagement) return;
     setActionError(null);
     try {
-      await acceptEngagement({ id: engagement.id }).unwrap();
+      await acceptEngagement({ id: engagement.id, listQuery: LIST_QUERY }).unwrap();
     } catch (err) {
       setActionError(readApiErrorMessage(err, t('common.error')));
     }
@@ -52,6 +62,7 @@ export function EngagementDetailPage() {
       await declineEngagement({
         id: engagement.id,
         body: { reason: validated.reason ?? undefined },
+        listQuery: LIST_QUERY,
       }).unwrap();
     } catch (err) {
       setActionError(readApiErrorMessage(err, t('common.error')));
@@ -66,6 +77,7 @@ export function EngagementDetailPage() {
       await postMessage({
         id: engagement.id,
         body: { body: validated.body, attachment_url: validated.attachment_url ?? undefined },
+        listQuery: LIST_QUERY,
       }).unwrap();
       setMessage('');
     } catch (err) {
@@ -77,7 +89,7 @@ export function EngagementDetailPage() {
     if (!engagement) return;
     setActionError(null);
     try {
-      await completeEngagement({ id: engagement.id }).unwrap();
+      await completeEngagement({ id: engagement.id, listQuery: LIST_QUERY }).unwrap();
     } catch (err) {
       setActionError(readApiErrorMessage(err, t('common.error')));
     }
@@ -111,6 +123,8 @@ export function EngagementDetailPage() {
       <div className="rounded-2xl border border-ink-10 bg-white p-5">
         <EngagementThread
           engagement={engagement}
+          messages={messages}
+          messagesLoading={messagesLoading || messagesFetching}
           message={message}
           setMessage={setMessage}
           declineReason={declineReason}

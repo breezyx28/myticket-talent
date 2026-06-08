@@ -15,7 +15,13 @@ import {
   useUpdateTalentApplicationMutation,
 } from '@/api/endpoints';
 import { isTalentApplicationReady, TALENT_BIO_MAX_CHARS } from '@/lib/onboardingValidation';
-import { readApiErrorMessage } from '@/lib/apiErrors';
+import { readApiErrorMessage, readApiFieldErrors } from '@/lib/apiErrors';
+import { resolveSubmitErrorStep } from '@/lib/applicationSubmitErrors';
+import {
+  getTalentCityId,
+  getTalentProfileImageUrl,
+  getTalentRegionId,
+} from '@/lib/talentApplicationFields';
 import { uploadToCdn } from '@/lib/upload';
 import {
   createTalentApplicationSchema,
@@ -101,8 +107,8 @@ export function ApplicationWizardPage() {
     });
     profileForm.reset({
       bio: ta.bio ?? '',
-      saudi_region_id: ta.saudi_region_id != null ? Number(ta.saudi_region_id) : undefined,
-      city: ta.city != null ? Number(ta.city) : undefined,
+      saudi_region_id: getTalentRegionId(ta),
+      city: getTalentCityId(ta),
       travel_ready: Boolean(ta.travel_ready),
       location_public: Boolean(ta.location_public),
     });
@@ -227,6 +233,40 @@ export function ApplicationWizardPage() {
     }
   }
 
+  function applySubmitFieldErrors(err: unknown) {
+    const fieldErrors = readApiFieldErrors(err);
+    if (fieldErrors.stage_name?.[0]) {
+      identityForm.setError('stage_name', { message: fieldErrors.stage_name[0] });
+    }
+    if (fieldErrors.contact_email?.[0]) {
+      identityForm.setError('contact_email', { message: fieldErrors.contact_email[0] });
+    }
+    if (fieldErrors.contact_phone?.[0]) {
+      identityForm.setError('contact_phone', { message: fieldErrors.contact_phone[0] });
+    }
+    if (fieldErrors.bio?.[0]) {
+      profileForm.setError('bio', { message: fieldErrors.bio[0] });
+    }
+    if (fieldErrors.saudi_region_id?.[0]) {
+      profileForm.setError('saudi_region_id', { message: fieldErrors.saudi_region_id[0] });
+    }
+    if (fieldErrors.city?.[0]) {
+      profileForm.setError('city', { message: fieldErrors.city[0] });
+    }
+    if (fieldErrors.media?.[0]) {
+      toast.error(fieldErrors.media[0]);
+    }
+    if (fieldErrors.accepted_quality_disclaimer?.[0]) {
+      verificationForm.setError('accepted_quality_disclaimer', {
+        message: fieldErrors.accepted_quality_disclaimer[0],
+      });
+    }
+    if (fieldErrors.certificate_name?.[0]) {
+      verificationForm.setError('certificate_name', { message: fieldErrors.certificate_name[0] });
+    }
+    goToStep(resolveSubmitErrorStep(fieldErrors));
+  }
+
   async function onSubmit() {
     if (!effectiveId || !detail) return;
     const ready = isTalentApplicationReady(detail as TalentApplicationDetail);
@@ -238,6 +278,7 @@ export function ApplicationWizardPage() {
       await submitApplication({ id: effectiveId }).unwrap();
       navigate('/application/status', { replace: true });
     } catch (err) {
+      applySubmitFieldErrors(err);
       toast.error(readApiErrorMessage(err, t('common.error')));
     }
   }
@@ -255,7 +296,7 @@ export function ApplicationWizardPage() {
   }
 
   const media = detail?.talent_application?.media ?? [];
-  const profileImage = detail?.talent_application?.profile_image;
+  const profileImage = getTalentProfileImageUrl(detail?.talent_application);
   const readyForSubmit = detail ? isTalentApplicationReady(detail as TalentApplicationDetail) : false;
 
   return (

@@ -82,6 +82,8 @@
   "engagements": {
     "title": "الطلبات",
     "empty": "لا توجد طلبات تعاقد بعد.",
+    "filterAll": "الكل",
+    "loadingMessages": "جاري تحميل الرسائل…",
     "accept": "قبول",
     "decline": "رفض",
     "complete": "إتمام",

@@ -82,6 +82,8 @@
   "engagements": {
     "title": "Engagements",
     "empty": "No engagement requests yet.",
+    "filterAll": "All",
+    "loadingMessages": "Loading messages…",
     "accept": "Accept",
     "decline": "Decline",
     "complete": "Mark complete",

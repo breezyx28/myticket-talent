@@ -4,13 +4,17 @@ import {
   useAcceptEngagementMutation,
   useCompleteEngagementMutation,
   useDeclineEngagementMutation,
+  useListEngagementMessagesQuery,
   useListEngagementsQuery,
   usePostEngagementMessageMutation,
 } from '@/api/endpoints';
 import { readApiErrorMessage } from '@/lib/apiErrors';
+import { ENGAGEMENT_STATUS_FILTERS } from '@/lib/engagementsUi';
 import { declineEngagementSchema, engagementMessageSchema } from '@/schemas/engagement';
 import { cn } from '@/lib/utils';
-import type { Engagement } from '@/api/types/engagement';
+import type { Engagement, EngagementMessage } from '@/api/types/engagement';
+import type { EngagementStatus } from '@/types/domain';
+import type { ListEngagementsQuery } from '@/api/types/common';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -21,10 +25,17 @@ export function EngagementsPage() {
   const [searchParams] = useSearchParams();
   const focusId = searchParams.get('focus');
 
-  const { data: engagementsPaged, isLoading, isError } = useListEngagementsQuery({
-    page: 1,
-    per_page: 50,
-  });
+  const [statusFilter, setStatusFilter] = useState<'all' | EngagementStatus>('all');
+  const listQuery = useMemo<ListEngagementsQuery>(
+    () => ({
+      page: 1,
+      per_page: 50,
+      ...(statusFilter === 'all' ? {} : { status: statusFilter }),
+    }),
+    [statusFilter],
+  );
+
+  const { data: engagementsPaged, isLoading, isError } = useListEngagementsQuery(listQuery);
 
   const list = useMemo(() => engagementsPaged?.data ?? [], [engagementsPaged?.data]);
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
@@ -43,10 +54,19 @@ export function EngagementsPage() {
     [list, effectiveSelectedId],
   );
 
+  const {
+    data: threadMessages = [],
+    isLoading: messagesLoading,
+    isFetching: messagesFetching,
+  } = useListEngagementMessagesQuery(
+    { id: selected?.id ?? '' },
+    { skip: selected == null },
+  );
+
   async function onAccept(id: string | number) {
     setActionError(null);
     try {
-      await acceptEngagement({ id }).unwrap();
+      await acceptEngagement({ id, listQuery }).unwrap();
     } catch (err) {
       setActionError(readApiErrorMessage(err, t('common.error')));
     }
@@ -61,6 +81,7 @@ export function EngagementsPage() {
       await declineEngagement({
         id,
         body: { reason: validated.reason ?? undefined },
+        listQuery,
       }).unwrap();
       setDeclineReason('');
     } catch (err) {
@@ -76,6 +97,7 @@ export function EngagementsPage() {
       await postMessage({
         id: selected.id,
         body: { body: validated.body, attachment_url: validated.attachment_url ?? undefined },
+        listQuery,
       }).unwrap();
       setMessage('');
     } catch (err) {
@@ -86,7 +108,7 @@ export function EngagementsPage() {
   async function onComplete(id: string | number) {
     setActionError(null);
     try {
-      await completeEngagement({ id }).unwrap();
+      await completeEngagement({ id, listQuery }).unwrap();
     } catch (err) {
       setActionError(readApiErrorMessage(err, t('common.error')));
     }
@@ -101,6 +123,23 @@ export function EngagementsPage() {
             {actionError}
           </p>
         ) : null}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {ENGAGEMENT_STATUS_FILTERS.map((filter) => (
+            <button
+              key={filter.value}
+              type="button"
+              onClick={() => setStatusFilter(filter.value)}
+              className={cn(
+                'rounded-full px-4 py-2 text-[12px] font-semibold transition-colors',
+                statusFilter === filter.value
+                  ? 'bg-ink text-white shadow-card-sm'
+                  : 'border border-ink-10 bg-white text-ink-60 hover:bg-ink-5 hover:text-ink',
+              )}
+            >
+              {t(filter.labelKey as 'engagements.filterAll')}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,360px)_1fr]">
@@ -155,6 +194,8 @@ export function EngagementsPage() {
           {selected ? (
             <EngagementThread
               engagement={selected}
+              messages={threadMessages}
+              messagesLoading={messagesLoading || messagesFetching}
               message={message}
               setMessage={setMessage}
               declineReason={declineReason}
@@ -181,6 +222,8 @@ export function EngagementsPage() {
 
 export function EngagementThread({
   engagement,
+  messages,
+  messagesLoading = false,
   message,
   setMessage,
   declineReason,
@@ -195,6 +238,8 @@ export function EngagementThread({
   completing,
 }: {
   engagement: Engagement;
+  messages: EngagementMessage[];
+  messagesLoading?: boolean;
   message: string;
   setMessage: (v: string) => void;
   declineReason: string;
@@ -209,7 +254,7 @@ export function EngagementThread({
   completing: boolean;
 }) {
   const { t } = useTranslation();
-  const messages = engagement.messages ?? [];
+  const threadMessages = messages.length > 0 ? messages : (engagement.messages ?? []);
 
   return (
     <>
@@ -235,12 +280,16 @@ export function EngagementThread({
 
       <div className="mt-5 rounded-xl border border-ink-10 bg-ink-5/30 p-4">
         <ul className="max-h-[280px] space-y-2 overflow-y-auto pe-1">
-          {messages.length === 0 ? (
+          {messagesLoading && threadMessages.length === 0 ? (
+            <li className="rounded-xl border border-dashed border-ink-20 bg-white px-3 py-6 text-center text-[12px] text-ink-40">
+              {t('engagements.loadingMessages')}
+            </li>
+          ) : threadMessages.length === 0 ? (
             <li className="rounded-xl border border-dashed border-ink-20 bg-white px-3 py-6 text-center text-[12px] text-ink-40">
               —
             </li>
           ) : (
-            messages.map((msg) => (
+            threadMessages.map((msg) => (
               <li
                 key={msg.id}
                 className={cn(

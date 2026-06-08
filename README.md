@@ -40,6 +40,7 @@ Copy `.env.example` to `.env` and set:
 
 - [myticket_talent_dashboard_guide.md](myticket_talent_dashboard_guide.md) — full build guide
 - [frontend-handoff-talent-api.md](frontend-handoff-talent-api.md) — API reference
+- [BACKEND_GAPS.md](BACKEND_GAPS.md) — open API / config items for the backend team
 
 ## Main website handoff
 
