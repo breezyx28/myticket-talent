@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { useGetTalentProfileQuery } from '@/api/endpoints';
 import { ENV } from '@/config/env';
+import { getTalentLiveProfileImageUrl } from '@/lib/talentApplicationFields';
 import { ExternalLink, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -13,6 +14,7 @@ export function PublicProfilePreviewPage() {
   if (!profile) return null;
 
   const publicUrl = `${ENV.mainWebsiteUrl}/artists/${profile.slug}`;
+  const profileImage = getTalentLiveProfileImageUrl(profile);
 
   return (
     <div className="space-y-6">
@@ -31,8 +33,8 @@ export function PublicProfilePreviewPage() {
 
       <article className="overflow-hidden rounded-3xl border border-ink-10 bg-white shadow-card-md">
         <div className="grid gap-0 md:grid-cols-[240px_1fr]">
-          {profile.profile_image_url ? (
-            <img src={profile.profile_image_url} alt="" className="h-full min-h-[240px] w-full object-cover" />
+          {profileImage ? (
+            <img src={profileImage} alt="" className="h-full min-h-[240px] w-full object-cover" />
           ) : (
             <div className="min-h-[240px] bg-gradient-to-br from-lemon/40 to-coral/20" />
           )}

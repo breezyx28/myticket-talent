@@ -1,21 +1,18 @@
 import { useGetTalentProfileQuery } from '@/api/endpoints';
+import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useTranslation } from 'react-i18next';
 import { Navigate, Outlet } from 'react-router-dom';
 
 export function RequireApprovedTalent() {
-  const { data: profile, isLoading, isError } = useGetTalentProfileQuery();
+  const { data: profile, isLoading, isFetching } = useGetTalentProfileQuery();
   const { t } = useTranslation();
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center bg-surface-tint text-[14px] font-medium text-ink-60">
-        {t('common.loading')}
-      </div>
-    );
+  if (isLoading || (isFetching && !profile)) {
+    return <PageSkeleton label={t('common.loading')} />;
   }
 
-  if (isError || !profile) {
-    return <Navigate to="/application" replace />;
+  if (!profile) {
+    return <Navigate to="/application/status" replace />;
   }
 
   return <Outlet />;

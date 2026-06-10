@@ -30,11 +30,11 @@ export function ApplicationStatusPage() {
     },
   );
 
-  const profileQuery = useGetTalentProfileQuery(undefined, {
-    skip: application?.status !== 'approved',
-    pollingInterval: application?.status === 'approved' ? 10_000 : 0,
+  const isApproved = application?.status === 'approved';
+  const { data: profile } = useGetTalentProfileQuery(undefined, {
+    skip: !isApproved,
+    pollingInterval: isApproved ? 10_000 : 0,
   });
-  const { data: profile, isLoading: profileLoading } = profileQuery;
 
   const [resubmit, { isLoading: resubmitting }] = useResubmitTalentApplicationMutation();
   const [withdraw, { isLoading: withdrawing }] = useWithdrawTalentApplicationMutation();
@@ -109,7 +109,7 @@ export function ApplicationStatusPage() {
       {status === 'approved' && !profile ? (
         <div className="flex items-center gap-3 rounded-2xl border border-mint/30 bg-mint/10 px-5 py-4 text-[14px] font-medium text-ink">
           <Loader2 size={18} className="animate-spin text-mint-dark" />
-          {profileLoading ? t('application.status_provisioning') : t('application.status_approved')}
+          {t('application.status_provisioning')}
         </div>
       ) : null}
 

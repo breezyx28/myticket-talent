@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/forms/Field';
-import { Select } from '@/components/forms/Select';
 import { TextArea } from '@/components/forms/TextArea';
 import { TextInput } from '@/components/forms/TextInput';
 import { ApplicationStatusBanner } from '@/components/talent/ApplicationStatusBanner';
@@ -31,8 +30,10 @@ import {
 } from '@/schemas';
 import type { TalentApplicationDetail } from '@/types/domain';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Loader2, Trash2, Upload } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FileUploadButton } from '@/components/profile/FileUploadButton';
+import { RegionCitySelect } from '@/components/profile/RegionCitySelect';
+import { TalentMediaGalleryEditor } from '@/components/profile/TalentMediaGalleryEditor';
+import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
@@ -119,10 +120,6 @@ export function ApplicationWizardPage() {
   }, [detail, identityForm, profileForm, verificationForm]);
 
   const selectedRegionId = profileForm.watch('saudi_region_id');
-  const cities = useMemo(() => {
-    const region = regions.find((r) => r.id === selectedRegionId);
-    return region?.cities ?? [];
-  }, [regions, selectedRegionId]);
 
   const goToStep = useCallback(
     (index: number) => {
@@ -292,7 +289,7 @@ export function ApplicationWizardPage() {
   }
 
   if (applicationStatus === 'approved') {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/application/status" replace />;
   }
 
   const media = detail?.talent_application?.media ?? [];
@@ -339,26 +336,18 @@ export function ApplicationWizardPage() {
                 hasError={Boolean(identityForm.formState.errors.contact_phone)}
               />
             </Field>
-            <Field label="Profile image">
+            <Field label={t('profile.headshot')}>
               <div className="flex flex-wrap items-center gap-3">
                 {profileImage ? (
                   <img src={profileImage} alt="" className="h-20 w-20 rounded-2xl object-cover ring-2 ring-ink-10" />
                 ) : null}
-                <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-ink-10 px-4 py-2 text-[13px] font-semibold hover:bg-ink-5">
-                  <Upload size={16} />
-                  Upload
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={uploading || !effectiveId}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) void onProfileImageUpload(file);
-                    }}
-                  />
-                </label>
-                {uploading ? <Loader2 size={18} className="animate-spin text-ink-40" /> : null}
+                <FileUploadButton
+                  label={t('profile.uploadHeadshot')}
+                  accept="image/*"
+                  loading={uploading}
+                  disabled={!effectiveId}
+                  onFile={(file) => void onProfileImageUpload(file)}
+                />
               </div>
             </Field>
             <Button type="button" variant="dark" onClick={() => void onIdentityNext()}>
@@ -377,32 +366,13 @@ export function ApplicationWizardPage() {
                 hasError={Boolean(profileForm.formState.errors.bio)}
               />
             </Field>
-            <Field label={t('application.region')}>
-              <Select
-                {...profileForm.register('saudi_region_id', { valueAsNumber: true })}
-                onChange={(e) => {
-                  profileForm.setValue('saudi_region_id', Number(e.target.value) || undefined);
-                  profileForm.setValue('city', undefined);
-                }}
-              >
-                <option value="">—</option>
-                {regions.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label={t('application.city')}>
-              <Select {...profileForm.register('city', { valueAsNumber: true })}>
-                <option value="">—</option>
-                {cities.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+            <RegionCitySelect
+              regions={regions}
+              register={profileForm.register}
+              setValue={profileForm.setValue}
+              selectedRegionId={selectedRegionId ?? undefined}
+              errors={profileForm.formState.errors}
+            />
             <label className="flex items-center gap-2 text-[14px] font-medium text-ink">
               <input type="checkbox" {...profileForm.register('travel_ready')} className="rounded border-ink-20" />
               {t('application.travelReady')}
@@ -424,50 +394,21 @@ export function ApplicationWizardPage() {
 
         {stepIndex === 2 ? (
           <form className="mt-6 space-y-4" onSubmit={(e) => e.preventDefault()}>
-            <Field label="Certificate name">
+            <Field label={t('profile.certificateName')}>
               <TextInput {...verificationForm.register('certificate_name')} />
             </Field>
             <div className="rounded-2xl border border-ink-10 bg-ink-5/40 p-4">
-              <p className="text-[12px] font-semibold text-ink-60">Media gallery</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {(['image', 'video', 'certificate'] as const).map((kind) => (
-                  <label
-                    key={kind}
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-ink-10 bg-white px-3 py-2 text-[12px] font-semibold hover:bg-ink-5"
-                  >
-                    <Upload size={14} />
-                    {kind}
-                    <input
-                      type="file"
-                      className="hidden"
-                      disabled={uploading}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) void onMediaUpload(file, kind);
-                      }}
-                    />
-                  </label>
-                ))}
+              <p className="text-[12px] font-semibold text-ink-60">{t('profile.mediaGallery')}</p>
+              <div className="mt-3">
+                <TalentMediaGalleryEditor
+                  applicationMedia={media}
+                  profileGallery={[]}
+                  canEdit
+                  uploading={uploading}
+                  onUpload={(file, kind) => void onMediaUpload(file, kind)}
+                  onDelete={(id) => void onDeleteMedia(id)}
+                />
               </div>
-              <ul className="mt-4 space-y-2">
-                {media.map((item) => (
-                  <li
-                    key={item.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-ink-10 bg-white px-3 py-2 text-[12px]"
-                  >
-                    <span className="truncate font-medium text-ink">
-                      {item.label ?? item.kind}: {item.value}
-                    </span>
-                    <button
-                      type="button"
-                      className="rounded-full p-1.5 text-coral hover:bg-coral/10"
-                      onClick={() => void onDeleteMedia(item.id)}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
             </div>
             <label className="flex items-start gap-2 text-[14px] font-medium text-ink">
               <input

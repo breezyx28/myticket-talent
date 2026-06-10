@@ -35,7 +35,7 @@ describe('resolvePostLoginRoute', () => {
     ).toBe('/');
   });
 
-  it('sends talent role without profile to dashboard home', () => {
+  it('sends talent role without profile to provisioning status page', () => {
     expect(
       resolvePostLoginRoute({
         role: 'talent',
@@ -43,7 +43,7 @@ describe('resolvePostLoginRoute', () => {
         applicationStatus: 'approved',
         hasTalentProfile: false,
       }),
-    ).toBe('/');
+    ).toBe('/application/status');
   });
 
   it('sends guest without application to wizard', () => {
@@ -90,7 +90,7 @@ describe('resolvePostLoginRoute', () => {
     ).toBe('/application');
   });
 
-  it('sends approved guest without profile to home (provisioning)', () => {
+  it('sends approved guest without profile to provisioning status page', () => {
     expect(
       resolvePostLoginRoute({
         role: 'guest',
@@ -98,7 +98,7 @@ describe('resolvePostLoginRoute', () => {
         applicationStatus: 'approved',
         hasTalentProfile: false,
       }),
-    ).toBe('/');
+    ).toBe('/application/status');
   });
 
   it('defaults unknown state to application wizard', () => {

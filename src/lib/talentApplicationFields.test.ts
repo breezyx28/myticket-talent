@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   getTalentCityId,
+  getTalentLiveProfileImageUrl,
   getTalentProfileImageUrl,
   getTalentRegionId,
 } from '@/lib/talentApplicationFields';
@@ -23,6 +24,15 @@ describe('talentApplicationFields', () => {
         profile_image_url: 'https://cdn/b.jpg',
       }),
     ).toBe('https://cdn/b.jpg');
+  });
+
+  it('resolves live profile image alias', () => {
+    expect(
+      getTalentLiveProfileImageUrl({
+        profile_image: 'https://cdn/live.jpg',
+        profile_image_url: 'https://cdn/old.jpg',
+      }),
+    ).toBe('https://cdn/live.jpg');
   });
 
   it('maps region and city aliases', () => {

@@ -64,6 +64,7 @@ export interface TalentProfileMe {
   bio: string | null;
   region_id: number | null;
   city_id: number | null;
+  profile_image?: string | null;
   profile_image_url: string | null;
   intro_video_url: string | null;
   instagram_handle: string | null;
@@ -87,6 +88,9 @@ export interface UpdateTalentProfileRequest {
   bio?: string | null;
   website_url?: string | null;
   instagram_handle?: string | null;
+  /** Preferred write alias — maps to `profile_image_url` in DB. */
+  profile_image?: string | null;
+  profile_image_url?: string | null;
   travel_ready?: boolean;
   location_public?: boolean;
 }

@@ -9,10 +9,10 @@ export function resolvePostLoginRoute(input: {
   const { role, hasTalentApplication, applicationStatus, hasTalentProfile } = input;
 
   if (role === 'organizer' || role === 'vendor') return '/access-denied';
-  if (hasTalentProfile || role === 'talent') return '/';
+  if (hasTalentProfile) return '/';
+  if (role === 'talent' || applicationStatus === 'approved') return '/application/status';
   if (!hasTalentApplication) return '/application';
   if (applicationStatus === 'submitted') return '/application/status';
   if (applicationStatus === 'draft' || applicationStatus === 'rejected') return '/application';
-  if (applicationStatus === 'approved') return '/';
   return '/application';
 }
