@@ -31,7 +31,7 @@ bun run lint
 
 Copy `.env.example` to `.env` and set:
 
-- `VITE_API_BASE_URL` — API host (default `http://localhost:8000`)
+- `VITE_API_BASE_URL` — API host (default `https://myticket-api.kat-jr.com`)
 - `VITE_API_PREFIX` — API prefix (default `/api/v1/main`)
 - `VITE_MAIN_WEBSITE_URL` — main site for tickets/public profiles
 - `VITE_UPLOAD_URL` — optional CDN upload endpoint for application media
