@@ -1,5 +1,11 @@
+import { AvailabilityToggle } from '@/components/talent/AvailabilityToggle';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import {
+  useGetTalentAvailabilityQuery,
+  useSetTalentAvailabilityMutation,
+} from '@/api/endpoints';
+import type { TalentAvailability } from '@/types/domain';
 import { RegionCitySelect } from '@/components/profile/RegionCitySelect';
 import {
   useGetSaudiRegionsQuery,
@@ -27,6 +33,8 @@ export function ProfileLocationSection({
   applicationDetail?: RoleApplicationDetail | null;
 }) {
   const { t } = useTranslation();
+  const { data: availability, isLoading: loadingAvailability } = useGetTalentAvailabilityQuery();
+  const [setAvailability, { isLoading: savingAvailability }] = useSetTalentAvailabilityMutation();
   const { data: regionsData } = useGetSaudiRegionsQuery();
   const regions = regionsData?.data ?? [];
   const [updateApplication, { isLoading: savingApp }] = useUpdateTalentApplicationMutation();
@@ -71,6 +79,18 @@ export function ProfileLocationSection({
     return [region?.name, city?.name].filter(Boolean).join(', ');
   }, [profile, regions]);
 
+  const availabilityStatus: TalentAvailability =
+    availability?.status ?? profile.availability_status ?? 'available';
+
+  async function onAvailabilityChange(next: TalentAvailability) {
+    try {
+      await setAvailability({ status: next }).unwrap();
+      toast.success(t('common.saved'));
+    } catch (err) {
+      toast.error(readApiErrorMessage(err, t('common.error')));
+    }
+  }
+
   async function onSubmit(values: TalentApplicationPatchSchema) {
     try {
       await updateProfile({
@@ -98,6 +118,24 @@ export function ProfileLocationSection({
 
   return (
     <div className="space-y-6">
+      <div className="rounded-2xl border border-ink-10 bg-surface-muted p-5">
+        <p className="font-semibold text-ink">{t('availability.title')}</p>
+        <p className="mt-1 text-[13px] text-ink-60">
+          {availabilityStatus === 'available' ? t('availability.availableHint') : t('availability.reservedHint')}
+        </p>
+        <div className="mt-4">
+          {loadingAvailability ? (
+            <p className="text-[13px] text-ink-40">{t('common.loading')}</p>
+          ) : (
+            <AvailabilityToggle
+              status={availabilityStatus}
+              onChange={(next) => void onAvailabilityChange(next)}
+              disabled={savingAvailability}
+            />
+          )}
+        </div>
+      </div>
+
       <form
         className="space-y-4 rounded-3xl border border-ink-10 bg-white p-6 shadow-card-sm"
         onSubmit={handleSubmit(onSubmit)}
@@ -127,7 +165,7 @@ export function ProfileLocationSection({
           {t('profile.locationPublic')}
         </label>
 
-        <Button type="submit" variant="dark" loading={savingApp || savingProfile}>
+        <Button type="submit" variant="primary" loading={savingApp || savingProfile}>
           {t('profile.saveChanges')}
         </Button>
       </form>

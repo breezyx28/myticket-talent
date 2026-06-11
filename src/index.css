@@ -39,10 +39,19 @@
   --color-surface-warm: #f0ede6;
   --color-surface-dark: #0d0d0d;
 
-  --shadow-card-sm: 0 4px 12px rgba(0, 0, 0, 0.06);
-  --shadow-card-md: 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-card-lg: 0 12px 40px rgba(0, 0, 0, 0.1);
-  --shadow-card-xl: 0 20px 48px rgba(0, 0, 0, 0.12);
+  /* Workspace dashboard semantics */
+  --color-surface-elevated: #ffffff;
+  --color-surface-muted: #f8f8f7;
+  --color-border-subtle: rgba(13, 13, 13, 0.08);
+  --color-accent: #ff6b4a;
+  --color-success: #1fa87a;
+  --color-warning: #f4a05a;
+
+  --shadow-card-sm: 0 4px 12px rgba(13, 13, 13, 0.06);
+  --shadow-card-md: 0 8px 24px rgba(13, 13, 13, 0.08);
+  --shadow-card-lg: 0 12px 40px rgba(13, 13, 13, 0.1);
+  --shadow-card-xl: 0 20px 48px rgba(13, 13, 13, 0.12);
+  --shadow-elevated: 0 12px 40px -12px rgba(13, 13, 13, 0.08);
 }
 
 @utility line-clamp-2 {
@@ -68,6 +77,14 @@
   box-shadow: var(--shadow-card-xl);
 }
 
+@utility shadow-elevated {
+  box-shadow: var(--shadow-elevated);
+}
+
+@utility tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
 @layer base {
   *,
   *::before,
@@ -90,5 +107,15 @@
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

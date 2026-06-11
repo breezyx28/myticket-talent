@@ -32,14 +32,27 @@ import type { TalentApplicationDetail } from '@/types/domain';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FileUploadButton } from '@/components/profile/FileUploadButton';
 import { RegionCitySelect } from '@/components/profile/RegionCitySelect';
+import { ReviewChecklist } from '@/components/application/ReviewChecklist';
+import { GovernmentIdVerificationPanel } from '@/components/profile/GovernmentIdVerificationPanel';
 import { TalentMediaGalleryEditor } from '@/components/profile/TalentMediaGalleryEditor';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const STEPS = ['identity', 'profile', 'verification', 'review'] as const;
+
+function WizardFooter({ children }: { children: ReactNode }) {
+  return (
+    <div
+      className="sticky bottom-0 -mx-6 mt-8 flex flex-wrap gap-3 border-t border-ink-10 bg-white px-6 py-4 md:-mx-8 md:px-8"
+      style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+    >
+      {children}
+    </div>
+  );
+}
 
 export function ApplicationWizardPage() {
   const { t } = useTranslation();
@@ -302,11 +315,8 @@ export function ApplicationWizardPage() {
         <ApplicationStatusBanner status={applicationStatus} />
       ) : null}
 
-      <div className="rounded-3xl border border-ink-10 bg-white p-6 shadow-card-sm md:p-8">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-extrabold text-ink">
-            {t(`application.step_${STEPS[stepIndex]}` as 'application.step_identity')}
-          </h2>
+      <div>
+        <div className="mb-6 flex items-center justify-end gap-3">
           <span className="text-[12px] font-medium text-ink-40">
             {saveState === 'saving'
               ? t('common.saving')
@@ -350,9 +360,11 @@ export function ApplicationWizardPage() {
                 />
               </div>
             </Field>
-            <Button type="button" variant="dark" onClick={() => void onIdentityNext()}>
-              {t('common.continue')}
-            </Button>
+            <WizardFooter>
+              <Button type="button" variant="primary" onClick={() => void onIdentityNext()}>
+                {t('common.continue')}
+              </Button>
+            </WizardFooter>
           </form>
         ) : null}
 
@@ -381,19 +393,24 @@ export function ApplicationWizardPage() {
               <input type="checkbox" {...profileForm.register('location_public')} className="rounded border-ink-20" />
               {t('application.locationPublic')}
             </label>
-            <div className="flex gap-3">
+            <WizardFooter>
               <Button type="button" variant="outline" onClick={() => goToStep(0)}>
                 {t('common.back')}
               </Button>
-              <Button type="button" variant="dark" onClick={() => void onProfileNext()}>
+              <Button type="button" variant="primary" onClick={() => void onProfileNext()}>
                 {t('common.continue')}
               </Button>
-            </div>
+            </WizardFooter>
           </form>
         ) : null}
 
         {stepIndex === 2 ? (
-          <form className="mt-6 space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <div className="mt-6 space-y-6">
+            <GovernmentIdVerificationPanel />
+            <div className="border-t border-ink-10 pt-6">
+              <h3 className="text-[15px] font-bold text-ink">{t('profile.verificationFiles')}</h3>
+              <p className="mt-1 text-[13px] text-ink-60">{t('profile.verificationFilesHint')}</p>
+            </div>
             <Field label={t('profile.certificateName')}>
               <TextInput {...verificationForm.register('certificate_name')} />
             </Field>
@@ -423,49 +440,52 @@ export function ApplicationWizardPage() {
                 {verificationForm.formState.errors.accepted_quality_disclaimer.message}
               </p>
             ) : null}
-            <div className="flex gap-3">
+            <WizardFooter>
               <Button type="button" variant="outline" onClick={() => goToStep(1)}>
                 {t('common.back')}
               </Button>
-              <Button type="button" variant="dark" onClick={() => void onVerificationNext()}>
+              <Button type="button" variant="primary" onClick={() => void onVerificationNext()}>
                 {t('common.continue')}
               </Button>
-            </div>
-          </form>
+            </WizardFooter>
+          </div>
         ) : null}
 
         {stepIndex === 3 ? (
           <div className="mt-6 space-y-4">
-            <div className="rounded-2xl border border-ink-10 bg-ink-5/30 p-4 text-[14px] text-ink-60">
+            <div className="rounded-2xl border border-ink-10 bg-surface-muted p-4 text-[14px] text-ink-60">
               <p>
                 <strong className="text-ink">{identityForm.getValues('stage_name')}</strong> ·{' '}
                 {identityForm.getValues('contact_email')}
               </p>
               <p className="mt-2 line-clamp-3">{profileForm.getValues('bio')}</p>
               <p className="mt-2 text-[12px]">
-                {media.length} media item(s) · disclaimer{' '}
-                {verificationForm.getValues('accepted_quality_disclaimer') ? 'accepted' : 'missing'}
+                {t('application.mediaCount', { count: media.length })} ·{' '}
+                {verificationForm.getValues('accepted_quality_disclaimer')
+                  ? t('application.disclaimerAccepted')
+                  : t('application.disclaimerMissing')}
               </p>
             </div>
+            {detail ? <ReviewChecklist detail={detail as TalentApplicationDetail} /> : null}
             {!readyForSubmit ? (
               <p className="rounded-xl border border-coral/30 bg-coral/10 px-4 py-3 text-[13px] font-medium text-coral">
                 {t('application.incomplete')}
               </p>
             ) : null}
-            <div className="flex gap-3">
+            <WizardFooter>
               <Button type="button" variant="outline" onClick={() => goToStep(2)}>
                 {t('common.back')}
               </Button>
               <Button
                 type="button"
-                variant="dark"
+                variant="primary"
                 loading={submitting}
                 disabled={!readyForSubmit}
                 onClick={() => void onSubmit()}
               >
                 {t('application.submit')}
               </Button>
-            </div>
+            </WizardFooter>
           </div>
         ) : null}
       </div>

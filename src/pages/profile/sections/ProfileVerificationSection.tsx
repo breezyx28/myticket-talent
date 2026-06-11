@@ -1,9 +1,11 @@
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/forms/Field';
 import { TextInput } from '@/components/forms/TextInput';
+import { GovernmentIdVerificationPanel } from '@/components/profile/GovernmentIdVerificationPanel';
 import { TalentMediaGalleryEditor } from '@/components/profile/TalentMediaGalleryEditor';
 import { useTalentProfileUploads } from '@/hooks/useTalentProfileUploads';
 import {
+  useGetGovernmentIdVerificationQuery,
   useUpdateTalentApplicationMutation,
 } from '@/api/endpoints';
 import { readApiErrorMessage } from '@/lib/apiErrors';
@@ -28,6 +30,7 @@ export function ProfileVerificationSection({
   const application = applicationDetail?.talent_application;
   const media = application?.media ?? [];
   const canEdit = canEditTalentApplication(applicationDetail?.status);
+  const { data: governmentId } = useGetGovernmentIdVerificationQuery();
   const [updateApplication, { isLoading }] = useUpdateTalentApplicationMutation();
 
   const { uploading, uploadMedia, removeMedia } = useTalentProfileUploads({
@@ -70,9 +73,12 @@ export function ProfileVerificationSection({
   }
 
   const disclaimerAccepted = Boolean(application?.accepted_quality_disclaimer);
+  const govStatus = governmentId?.status ?? application?.government_id_status ?? null;
 
   return (
     <div className="space-y-6">
+      <GovernmentIdVerificationPanel />
+
       <section className="rounded-3xl border border-ink-10 bg-white p-6 shadow-card-sm">
         <h2 className="text-[16px] font-bold text-ink">{t('profile.verificationStatus')}</h2>
         <div className="mt-4 flex flex-wrap gap-3">
@@ -88,6 +94,25 @@ export function ProfileVerificationSection({
             {disclaimerAccepted ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
             {disclaimerAccepted ? t('profile.disclaimerAccepted') : t('profile.disclaimerMissing')}
           </span>
+          {govStatus === 'verified' ? (
+            <span className="inline-flex items-center gap-2 rounded-full bg-mint/15 px-3 py-1.5 text-[13px] font-semibold text-mint-dark">
+              <CheckCircle2 size={16} />
+              {t('governmentId.status_verified')}
+            </span>
+          ) : govStatus === 'pending' ? (
+            <span className="inline-flex items-center gap-2 rounded-full bg-sky/15 px-3 py-1.5 text-[13px] font-semibold text-sky-dark">
+              {t('governmentId.status_pending')}
+            </span>
+          ) : govStatus === 'rejected' ? (
+            <span className="inline-flex items-center gap-2 rounded-full bg-coral/10 px-3 py-1.5 text-[13px] font-semibold text-coral">
+              <XCircle size={16} />
+              {t('governmentId.status_rejected')}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-2 rounded-full bg-ink-5 px-3 py-1.5 text-[13px] font-semibold text-ink-60">
+              {t('governmentId.status_not_submitted')}
+            </span>
+          )}
         </div>
       </section>
 

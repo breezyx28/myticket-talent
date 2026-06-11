@@ -26,6 +26,7 @@ export const apiTagTypes = [
   'Rating',
   'SaudiRegion',
   'Preferences',
+  'GovernmentIdVerification',
 ] as const;
 
 export type ApiTagType = (typeof apiTagTypes)[number];

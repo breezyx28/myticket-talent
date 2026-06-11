@@ -1,19 +1,19 @@
-import { NAV_MAIN } from '@/config/nav';
+import { PageTransition } from '@/components/layout/PageTransition';
+import { UserMenu } from '@/components/ui/UserMenu';
+import { NAV_MAIN, NAV_MOBILE_TABS } from '@/config/nav';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  useGetPreferencesQuery,
-  useUpdatePreferencesMutation,
-} from '@/api/endpoints';
+import { useGetPreferencesQuery, useUpdatePreferencesMutation } from '@/api/endpoints';
 import type { AppLanguage } from '@/i18n';
 import { cn } from '@/lib/utils';
-import { Globe, LogOut, Menu, Mic2, X } from 'lucide-react';
+import { Menu, Mic2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 export function TalentShellLayout() {
   const { user, signOut } = useAuth();
   const { t, i18n } = useTranslation();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const { data: preferences } = useGetPreferencesQuery();
   const [updatePreferences] = useUpdatePreferencesMutation();
@@ -24,6 +24,10 @@ export function TalentShellLayout() {
       void i18n.changeLanguage(next);
     }
   }, [i18n, preferences?.language]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
 
   async function toggleLanguage() {
     const next: AppLanguage = i18n.language === 'ar' ? 'en' : 'ar';
@@ -38,72 +42,55 @@ export function TalentShellLayout() {
   const displayLang = preferences?.language ?? (i18n.language === 'ar' ? 'ar' : 'en');
 
   return (
-    <div className="min-h-dvh bg-surface-page text-ink">
-      <header className="sticky top-0 z-50 h-[72px] border-b border-ink-10 bg-white/90 shadow-[0_8px_24px_rgba(0,0,0,0.04)] backdrop-blur-md">
-        <div className="mx-auto flex h-full max-w-full items-center justify-between px-4 md:px-6 lg:px-8">
+    <div className="min-h-dvh bg-surface-muted text-ink">
+      <header className="sticky top-0 z-50 border-b border-ink-10 bg-white/95 backdrop-blur-md">
+        <div className="mx-auto flex h-[64px] max-w-full items-center justify-between px-4 md:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="inline-flex rounded-full border border-ink-10 p-2 md:hidden"
-              aria-label="Open menu"
+              className="inline-flex rounded-full border border-ink-10 p-2 lg:hidden"
+              aria-label={t('shell.openMenu')}
               onClick={() => setOpen(true)}
             >
               <Menu size={20} strokeWidth={2} />
             </button>
             <NavLink to="/" className="flex items-center gap-2 font-extrabold tracking-tight text-ink">
-              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-lemon shadow-card-sm ring-1 ring-ink/5">
-                <Mic2 size={18} strokeWidth={2} className="text-ink" />
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-lemon shadow-card-sm ring-1 ring-ink/5">
+                <Mic2 size={16} strokeWidth={2} className="text-ink" />
               </span>
-              <span className="leading-tight">
+              <span className="hidden leading-tight sm:inline">
                 MyTicket <span className="text-coral">Talent</span>
               </span>
             </NavLink>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => void toggleLanguage()}
-              className="inline-flex h-10 items-center gap-2 rounded-full border border-ink-10 bg-white px-4 text-[13px] font-semibold text-ink-60 transition-colors hover:bg-ink-5 hover:text-ink"
-            >
-              <Globe size={16} strokeWidth={2} />
-              {displayLang === 'ar' ? 'العربية' : 'EN'}
-            </button>
-            <div className="hidden rounded-2xl border border-ink-10 bg-white px-3 py-1.5 md:block">
-              <p className="max-w-[220px] truncate text-[12px] font-semibold text-ink">{user?.email}</p>
-              <p className="text-[10px] font-bold uppercase tracking-wide text-ink-40">Talent</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void signOut()}
-              className="hidden h-10 items-center gap-2 rounded-full border-2 border-ink bg-white px-4 text-[13px] font-semibold shadow-sm transition-colors hover:bg-ink-5 md:inline-flex"
-            >
-              <LogOut size={16} strokeWidth={2} />
-              {t('common.signOut')}
-            </button>
-          </div>
+          <UserMenu
+            email={user?.email}
+            displayLang={displayLang}
+            onToggleLanguage={() => void toggleLanguage()}
+            onSignOut={() => void signOut()}
+          />
         </div>
       </header>
 
       <div className="flex">
         <aside
           className={cn(
-            'fixed inset-y-0 start-0 z-40 w-[86%] max-w-[320px] bg-white/95 p-6 transition-transform',
-            'md:top-[72px] md:z-30 md:w-72 md:max-w-none md:translate-x-0 md:overflow-y-auto md:border-e md:border-ink-10 md:bg-white md:p-5 md:pt-6',
-            open ? 'translate-x-0' : '-translate-x-full md:translate-x-0 rtl:translate-x-full rtl:md:translate-x-0',
+            'fixed inset-y-0 start-0 z-40 w-[86%] max-w-[280px] bg-white p-5 pt-20 transition-transform lg:static lg:z-auto lg:w-56 lg:max-w-none lg:translate-x-0 lg:border-e lg:border-ink-10 lg:bg-transparent lg:pt-6 lg:ps-6',
+            open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 rtl:translate-x-full rtl:lg:translate-x-0',
           )}
         >
-          <div className="mb-6 flex items-center justify-between md:hidden">
-            <p className="text-sm font-bold">{t('common.language')}</p>
+          <div className="mb-4 flex items-center justify-between lg:hidden">
+            <p className="text-sm font-bold text-ink">{t('common.language')}</p>
             <button
               type="button"
               className="rounded-full p-2 hover:bg-ink-5"
-              aria-label="Close menu"
+              aria-label={t('shell.closeMenu')}
               onClick={() => setOpen(false)}
             >
               <X size={20} />
             </button>
           </div>
-          <nav className="space-y-1">
+          <nav className="space-y-0.5" aria-label={t('nav.home')}>
             {NAV_MAIN.map((item) => (
               <NavLink
                 key={item.to}
@@ -112,44 +99,70 @@ export function TalentShellLayout() {
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-3 rounded-2xl px-4 py-3 text-[14px] font-semibold transition-colors',
+                    'relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-semibold transition-colors',
                     isActive
-                      ? 'bg-ink text-white shadow-card-md'
-                      : 'text-ink-60 hover:bg-ink-5 hover:text-ink',
+                      ? 'bg-white text-ink shadow-card-sm ring-1 ring-ink-10 lg:bg-white'
+                      : 'text-ink-60 hover:bg-white/70 hover:text-ink lg:hover:bg-white/50',
                   )
                 }
               >
-                <item.icon size={18} strokeWidth={2} />
-                {t(item.labelKey)}
+                {({ isActive }) => (
+                  <>
+                    {isActive ? (
+                      <span className="absolute inset-y-2 start-0 w-0.5 rounded-full bg-coral" aria-hidden />
+                    ) : null}
+                    <item.icon size={18} strokeWidth={2} className={cn(isActive ? 'text-coral' : '')} />
+                    <span className={cn(isActive ? 'ps-1' : '')}>{t(item.labelKey)}</span>
+                  </>
+                )}
               </NavLink>
             ))}
           </nav>
-          <div className="mt-8 rounded-2xl border border-ink-10 bg-ink-5/60 p-4 md:hidden">
-            <button
-              type="button"
-              onClick={() => {
-                void signOut();
-                setOpen(false);
-              }}
-              className="w-full rounded-full bg-ink py-3 text-sm font-semibold text-white"
-            >
-              {t('common.signOut')}
-            </button>
-          </div>
         </aside>
 
-        <main className="min-h-[calc(100dvh-72px)] flex-1 px-4 py-10 md:ms-72 md:px-8 lg:px-10">
-          <div className="mx-auto w-full max-w-[1280px]">
-            <Outlet />
+        <main className="min-h-[calc(100dvh-64px)] flex-1 px-4 py-8 pb-24 md:px-8 lg:pb-10">
+          <div className="mx-auto w-full max-w-[1280px] rounded-2xl bg-white p-6 shadow-card-sm md:p-8">
+            <PageTransition key={location.pathname}>
+              <Outlet />
+            </PageTransition>
           </div>
         </main>
       </div>
 
+      <nav
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-ink-10 bg-white/95 backdrop-blur-md lg:hidden"
+        aria-label={t('nav.home')}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
+        <div className="flex">
+          {NAV_MOBILE_TABS.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              className={({ isActive }) =>
+                cn(
+                  'flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition-colors',
+                  isActive ? 'text-coral' : 'text-ink-40',
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <item.icon size={20} strokeWidth={isActive ? 2.25 : 2} />
+                  {t(item.labelKey)}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </div>
+      </nav>
+
       {open ? (
         <button
           type="button"
-          className="fixed inset-0 z-30 bg-ink/40 md:hidden"
-          aria-label="Close overlay"
+          className="fixed inset-0 z-30 bg-ink/40 lg:hidden"
+          aria-label={t('shell.closeMenu')}
           onClick={() => setOpen(false)}
         />
       ) : null}

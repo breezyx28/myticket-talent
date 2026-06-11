@@ -14,3 +14,4 @@ export * from './roleApplications';
 export * from './engagements';
 export * from './talents';
 export * from './reference';
+export * from './governmentId';

@@ -5,12 +5,12 @@ type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'dark' | 'danger'
 type Size = 'sm' | 'md' | 'lg';
 
 const variantClass: Record<Variant, string> = {
-  primary: 'bg-lemon text-ink hover:bg-lemon-dark active:scale-[0.97]',
-  secondary: 'bg-coral text-white hover:bg-coral-dark active:scale-[0.97]',
-  outline: 'border-2 border-ink bg-white text-ink hover:bg-ink-5 active:scale-[0.97]',
-  ghost: 'text-ink hover:bg-ink-5',
-  dark: 'bg-ink text-white hover:bg-ink-80 active:scale-[0.97]',
-  danger: 'bg-coral text-white hover:bg-coral-dark active:scale-[0.97]',
+  primary: 'bg-coral text-white hover:bg-coral-dark active:scale-[0.98]',
+  secondary: 'border border-ink-10 bg-white text-ink hover:bg-ink-5 active:scale-[0.98]',
+  outline: 'border-2 border-ink bg-white text-ink hover:bg-ink-5 active:scale-[0.98]',
+  ghost: 'text-ink hover:bg-ink-5 active:scale-[0.98]',
+  dark: 'bg-ink text-white hover:bg-ink-80 active:scale-[0.98]',
+  danger: 'bg-coral text-white hover:bg-coral-dark active:scale-[0.98]',
 };
 
 const sizeClass: Record<Size, string> = {

@@ -83,7 +83,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md rounded-3xl border border-ink-10 bg-white p-8 shadow-card-lg">
+    <div className="mx-auto w-full max-w-md rounded-2xl border border-ink-10 bg-white p-8 shadow-elevated">
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-40">Talent Dashboard</p>
       <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-ink">{t('auth.loginTitle')}</h1>
 
@@ -96,9 +96,9 @@ export function LoginPage() {
           }}
         >
           <p className="rounded-xl bg-indigo/10 px-4 py-3 text-[13px] font-medium text-ink">
-            Two-factor authentication is required.
+            {t('auth.twoFactorRequired')}
           </p>
-          <Field label="Verification code" error={otpForm.formState.errors.otp?.message}>
+          <Field label={t('auth.verificationCode')} error={otpForm.formState.errors.otp?.message}>
             <TextInput
               {...otpForm.register('otp')}
               autoComplete="one-time-code"
@@ -107,7 +107,7 @@ export function LoginPage() {
             />
           </Field>
           {formError ? <p className="text-[12px] font-medium text-coral">{formError}</p> : null}
-          <Button type="submit" variant="dark" className="w-full" size="lg" loading={submitting}>
+          <Button type="submit" variant="primary" className="w-full" size="lg" loading={submitting}>
             {t('auth.signIn')}
           </Button>
           <Button
@@ -144,7 +144,7 @@ export function LoginPage() {
             />
           </Field>
           {formError ? <p className="text-[12px] font-medium text-coral">{formError}</p> : null}
-          <Button type="submit" variant="dark" className="w-full" size="lg" loading={submitting}>
+          <Button type="submit" variant="primary" className="w-full" size="lg" loading={submitting}>
             {t('auth.signIn')}
           </Button>
           <Button

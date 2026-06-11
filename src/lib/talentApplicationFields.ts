@@ -1,4 +1,5 @@
 import type { RoleApplicationTalentDetail } from '@/api/types/roleApplication';
+import type { TalentProfileMe } from '@/api/types/user';
 
 export type ProfileImageFields = {
   profile_image?: string | null;
@@ -38,6 +39,27 @@ export function getTalentRegionId(
   if (raw == null || raw === '') return undefined;
   const n = Number(raw);
   return Number.isFinite(n) ? n : undefined;
+}
+
+/** Prefer live profile `stage_name`, fall back to application onboarding value. */
+export function getTalentStageName(
+  profile: Pick<TalentProfileMe, 'stage_name'> | null | undefined,
+  application?: RoleApplicationTalentDetail | null,
+): string {
+  const fromProfile = profile?.stage_name?.trim();
+  if (fromProfile) return fromProfile;
+  const fromApplication = application?.stage_name?.trim();
+  if (fromApplication) return fromApplication;
+  return '';
+}
+
+/** Contact fields are stored on the role application, not the live profile. */
+export function getTalentContactEmail(application?: RoleApplicationTalentDetail | null): string {
+  return application?.contact_email?.trim() ?? '';
+}
+
+export function getTalentContactPhone(application?: RoleApplicationTalentDetail | null): string {
+  return application?.contact_phone?.trim() ?? '';
 }
 
 /** Prefer `city`, fall back to canonical `city_id`. */

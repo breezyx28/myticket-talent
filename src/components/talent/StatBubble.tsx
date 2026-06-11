@@ -25,12 +25,12 @@ export function StatBubble({
       <div className="flex items-start justify-between gap-3">
         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-40">{label}</p>
         {Icon ? (
-          <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-lemon/50 text-ink">
+          <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-ink-5 text-ink-60">
             <Icon size={18} strokeWidth={2} />
           </span>
         ) : null}
       </div>
-      <p className="mt-3 font-mono text-[32px] font-bold leading-none tracking-tight text-ink" dir="ltr">
+      <p className="tabular-nums mt-3 font-mono text-[32px] font-bold leading-none tracking-tight text-ink" dir="ltr">
         {value}
       </p>
       {footer ? <div className="mt-3">{footer}</div> : null}

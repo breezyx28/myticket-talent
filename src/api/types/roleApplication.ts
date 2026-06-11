@@ -72,6 +72,7 @@ export interface RoleApplicationTalentDetail {
   location_public?: boolean | null;
   certificate_name?: string | null;
   accepted_quality_disclaimer?: boolean | null;
+  government_id_status?: 'pending' | 'verified' | 'rejected' | null;
   profile_image?: string | null;
   profile_image_url?: string | null;
   media?: TalentApplicationMedia[];

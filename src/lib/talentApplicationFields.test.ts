@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   getTalentCityId,
+  getTalentContactEmail,
+  getTalentContactPhone,
   getTalentLiveProfileImageUrl,
   getTalentProfileImageUrl,
   getTalentRegionId,
+  getTalentStageName,
 } from '@/lib/talentApplicationFields';
 
 describe('talentApplicationFields', () => {
@@ -33,6 +36,19 @@ describe('talentApplicationFields', () => {
         profile_image_url: 'https://cdn/old.jpg',
       }),
     ).toBe('https://cdn/live.jpg');
+  });
+
+  it('resolves stage name from profile or application', () => {
+    expect(getTalentStageName({ stage_name: 'Live Name' }, { id: 1, stage_name: 'App Name' })).toBe(
+      'Live Name',
+    );
+    expect(getTalentStageName({ stage_name: '' }, { id: 1, stage_name: 'App Name' })).toBe('App Name');
+    expect(getTalentStageName({ stage_name: ' ' }, null)).toBe('');
+  });
+
+  it('reads contact fields from application', () => {
+    expect(getTalentContactEmail({ id: 1, contact_email: 'a@b.com' })).toBe('a@b.com');
+    expect(getTalentContactPhone({ id: 1, contact_phone: '+966500000000' })).toBe('+966500000000');
   });
 
   it('maps region and city aliases', () => {

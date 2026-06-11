@@ -1,4 +1,7 @@
 import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/talent/StatusPill';
 import {
   useAcceptEngagementMutation,
@@ -15,6 +18,8 @@ import { cn } from '@/lib/utils';
 import type { Engagement, EngagementMessage } from '@/api/types/engagement';
 import type { EngagementStatus } from '@/types/domain';
 import type { ListEngagementsQuery } from '@/api/types/common';
+import { motion } from 'framer-motion';
+import { MessageSquare } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -116,47 +121,48 @@ export function EngagementsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-[28px] font-extrabold text-ink">{t('engagements.title')}</h1>
-        {actionError ? (
-          <p className="mt-3 rounded-xl border border-coral/30 bg-coral/10 px-4 py-3 text-[13px] font-medium text-coral">
-            {actionError}
-          </p>
-        ) : null}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {ENGAGEMENT_STATUS_FILTERS.map((filter) => (
-            <button
-              key={filter.value}
-              type="button"
-              onClick={() => setStatusFilter(filter.value)}
-              className={cn(
-                'rounded-full px-4 py-2 text-[12px] font-semibold transition-colors',
-                statusFilter === filter.value
-                  ? 'bg-ink text-white shadow-card-sm'
-                  : 'border border-ink-10 bg-white text-ink-60 hover:bg-ink-5 hover:text-ink',
-              )}
-            >
-              {t(filter.labelKey as 'engagements.filterAll')}
-            </button>
-          ))}
-        </div>
+      <PageHeader title={t('engagements.title')} />
+      {actionError ? (
+        <p className="rounded-xl border border-coral/30 bg-coral/10 px-4 py-3 text-[13px] font-medium text-coral">
+          {actionError}
+        </p>
+      ) : null}
+      <div className="flex gap-1 border-b border-ink-10">
+        {ENGAGEMENT_STATUS_FILTERS.map((filter) => (
+          <button
+            key={filter.value}
+            type="button"
+            onClick={() => setStatusFilter(filter.value)}
+            className={cn(
+              'relative px-4 py-2.5 text-[13px] font-semibold transition-colors',
+              statusFilter === filter.value ? 'text-ink' : 'text-ink-40 hover:text-ink-60',
+            )}
+          >
+            {t(filter.labelKey as 'engagements.filterAll')}
+            {statusFilter === filter.value ? (
+              <motion.span
+                layoutId="engagement-filter-underline"
+                className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-coral"
+              />
+            ) : null}
+          </button>
+        ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,360px)_1fr]">
-        <aside className="rounded-2xl border border-ink-10 bg-white p-4 md:p-5">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-40">
-            {t('engagements.title')}
-          </p>
+        <aside className="p-1">
           {isLoading ? (
-            <p className="text-[13px] text-ink-40">{t('common.loading')}</p>
+            <div className="space-y-2">
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-20 w-full" />
+            </div>
           ) : isError ? (
             <p className="text-[13px] font-medium text-coral">{t('common.error')}</p>
           ) : list.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-ink-20 bg-ink-5/40 px-4 py-8 text-center text-[13px] text-ink-40">
-              {t('engagements.empty')}
-            </p>
+            <EmptyState icon={MessageSquare} title={t('engagements.empty')} />
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               {list.map((e) => (
                 <li key={e.id}>
                   <button
@@ -166,12 +172,19 @@ export function EngagementsPage() {
                       if (window.innerWidth < 1024) navigate(`/engagements/${e.id}`);
                     }}
                     className={cn(
-                      'w-full rounded-xl border p-3 text-start transition-colors',
+                      'relative w-full rounded-xl p-3 text-start transition-colors',
                       String(effectiveSelectedId) === String(e.id)
-                        ? 'border-coral bg-coral/5'
-                        : 'border-ink-10 hover:border-ink-20',
+                        ? 'bg-coral/5 ring-1 ring-coral/30'
+                        : 'hover:bg-ink-5/50',
                     )}
                   >
+                    {String(effectiveSelectedId) === String(e.id) ? (
+                      <motion.span
+                        layoutId="engagement-selected"
+                        className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-coral/20"
+                        transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+                      />
+                    ) : null}
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-bold text-ink">{e.organizer_profile_snapshot?.display_name ?? e.topic}</p>
                       <StatusPill
@@ -190,7 +203,7 @@ export function EngagementsPage() {
           )}
         </aside>
 
-        <section className="hidden rounded-2xl border border-ink-10 bg-white p-5 md:p-6 lg:block">
+        <section className="hidden lg:block">
           {selected ? (
             <EngagementThread
               engagement={selected}
@@ -209,10 +222,13 @@ export function EngagementsPage() {
               posting={posting}
               completing={completing}
             />
+          ) : isLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-64 w-full" />
+            </div>
           ) : (
-            <p className="rounded-xl border border-dashed border-ink-20 bg-ink-5/40 px-4 py-12 text-center text-[14px] text-ink-40">
-              {t('engagements.empty')}
-            </p>
+            <EmptyState icon={MessageSquare} title={t('engagements.selectThread')} />
           )}
         </section>
       </div>
@@ -311,15 +327,18 @@ export function EngagementThread({
           )}
         </ul>
         {engagement.status === 'accepted' ? (
-          <div className="mt-3 flex gap-2">
+          <div
+            className="sticky bottom-0 mt-3 flex gap-2 border-t border-ink-10 bg-white pt-3"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          >
             <input
               value={message}
               disabled={posting}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={t('engagements.messagePlaceholder')}
-              className="w-full rounded-xl border border-ink-10 bg-white px-4 py-2.5 text-[13px]"
+              className="w-full rounded-xl border border-ink-10 bg-white px-4 py-2.5 text-[13px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral"
             />
-            <Button variant="dark" disabled={posting || !message.trim()} onClick={onSendMessage}>
+            <Button variant="primary" disabled={posting || !message.trim()} onClick={onSendMessage}>
               {posting ? t('common.saving') : t('engagements.sendMessage')}
             </Button>
           </div>
@@ -335,7 +354,7 @@ export function EngagementThread({
             className="w-full rounded-xl border border-ink-10 px-4 py-2.5 text-[13px]"
           />
           <div className="flex flex-wrap gap-3">
-            <Button variant="dark" loading={accepting} disabled={declining} onClick={onAccept}>
+            <Button variant="primary" loading={accepting} disabled={declining} onClick={onAccept}>
               {t('engagements.accept')}
             </Button>
             <Button variant="outline" loading={declining} disabled={accepting} onClick={onDecline}>
@@ -346,7 +365,7 @@ export function EngagementThread({
       ) : null}
 
       {engagement.status === 'accepted' ? (
-        <Button className="mt-6" variant="primary" loading={completing} onClick={onComplete}>
+        <Button className="mt-6" variant="secondary" loading={completing} onClick={onComplete}>
           {t('engagements.complete')}
         </Button>
       ) : null}

@@ -1,6 +1,10 @@
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useGetTalentProfileQuery, useListTalentRatingsQuery } from '@/api/endpoints';
 import { Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 function StarsRow({ value }: { value: number }) {
   return (
@@ -9,7 +13,7 @@ function StarsRow({ value }: { value: number }) {
         <Star
           key={i}
           size={18}
-          className={i < value ? 'fill-lemon text-lemon' : 'text-ink-20'}
+          className={i < value ? 'fill-coral text-coral' : 'text-ink-20'}
           strokeWidth={1.5}
         />
       ))}
@@ -17,6 +21,7 @@ function StarsRow({ value }: { value: number }) {
   );
 }
 
+/** Deep-link wrapper — ratings summary also appears on Home. */
 export function RatingsPage() {
   const { t } = useTranslation();
   const { data: profile } = useGetTalentProfileQuery();
@@ -29,37 +34,41 @@ export function RatingsPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-[28px] font-extrabold text-ink">{t('ratings.title')}</h1>
-        {profile ? (
-          <div className="mt-4 flex flex-wrap items-center gap-4 rounded-2xl border border-ink-10 bg-white px-5 py-4 shadow-card-sm">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-40">
-                {t('ratings.average')}
-              </p>
-              <p className="font-mono text-3xl font-bold text-ink" dir="ltr">
-                {profile.rating_average}
-              </p>
-            </div>
-            <StarsRow value={Math.round(Number(profile.rating_average) || 0)} />
-            <p className="text-[13px] text-ink-60">{t('ratings.count', { count: profile.rating_count })}</p>
+      <PageHeader
+        title={t('ratings.title')}
+        description={
+          <Link to="/" className="font-semibold text-coral hover:underline">
+            {t('nav.home')}
+          </Link>
+        }
+      />
+
+      {profile ? (
+        <div className="flex flex-wrap items-center gap-4 border-b border-ink-10 pb-6">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-40">
+              {t('ratings.average')}
+            </p>
+            <p className="tabular-nums font-mono text-3xl font-bold text-ink" dir="ltr">
+              {profile.rating_average}
+            </p>
           </div>
-        ) : null}
-      </div>
+          <StarsRow value={Math.round(Number(profile.rating_average) || 0)} />
+          <p className="text-[13px] text-ink-60">{t('ratings.count', { count: profile.rating_count })}</p>
+        </div>
+      ) : null}
 
       {isLoading ? (
-        <p className="text-[14px] text-ink-60">{t('common.loading')}</p>
+        <div className="space-y-3">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+        </div>
       ) : ratings.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-ink-20 bg-ink-5/40 px-6 py-10 text-center text-[14px] text-ink-40">
-          {t('ratings.empty')}
-        </p>
+        <EmptyState icon={Star} title={t('ratings.empty')} actionLabel={t('nav.home')} actionHref="/" />
       ) : (
-        <ul className="space-y-3">
+        <ul className="divide-y divide-ink-10">
           {ratings.map((rating) => (
-            <li
-              key={rating.id}
-              className="flex items-center justify-between gap-4 rounded-2xl border border-ink-10 bg-white px-5 py-4 shadow-card-sm"
-            >
+            <li key={rating.id} className="flex items-center justify-between gap-4 py-4">
               <StarsRow value={Math.min(5, Math.max(0, Math.round(rating.stars)))} />
               {rating.created_at ? (
                 <span className="text-[12px] text-ink-40" dir="ltr">

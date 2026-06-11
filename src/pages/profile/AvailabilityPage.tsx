@@ -1,4 +1,5 @@
 import { AvailabilityToggle } from '@/components/talent/AvailabilityToggle';
+import { PageHeader } from '@/components/ui/PageHeader';
 import {
   useGetTalentAvailabilityQuery,
   useSetTalentAvailabilityMutation,
@@ -6,8 +7,10 @@ import {
 import { readApiErrorMessage } from '@/lib/apiErrors';
 import type { TalentAvailability } from '@/types/domain';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
+/** Deep-link wrapper — availability is managed inline on Profile → Location. */
 export function AvailabilityPage() {
   const { t } = useTranslation();
   const { data: availability, isLoading } = useGetTalentAvailabilityQuery();
@@ -26,14 +29,18 @@ export function AvailabilityPage() {
 
   return (
     <div className="max-w-xl space-y-6">
-      <div>
-        <h1 className="text-[28px] font-extrabold text-ink">{t('availability.title')}</h1>
-        <p className="mt-2 text-[14px] text-ink-60">
-          {status === 'available' ? t('availability.availableHint') : t('availability.reservedHint')}
-        </p>
-      </div>
-
-      <div className="rounded-3xl border border-ink-10 bg-white p-6 shadow-card-sm">
+      <PageHeader
+        title={t('availability.title')}
+        description={
+          status === 'available' ? t('availability.availableHint') : t('availability.reservedHint')
+        }
+      />
+      <p className="text-[13px] text-ink-60">
+        <Link to="/profile?tab=location" className="font-semibold text-coral hover:underline">
+          {t('profile.tabs.location')}
+        </Link>
+      </p>
+      <div className="rounded-2xl border border-ink-10 bg-surface-muted p-6">
         {isLoading ? (
           <p className="text-[14px] text-ink-60">{t('common.loading')}</p>
         ) : (
