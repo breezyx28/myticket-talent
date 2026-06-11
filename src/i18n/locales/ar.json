@@ -83,6 +83,7 @@
     "checkContact": "بيانات التواصل",
     "checkBio": "النبذة (30 حرفاً على الأقل)",
     "checkMedia": "وسائط المعرض",
+    "checkCategories": "فئة واحدة على الأقل",
     "checkDisclaimer": "إخلاء المسؤولية عن الجودة",
     "mediaCount": "{{count}} عناصر وسائط",
     "disclaimerAccepted": "تم قبول إخلاء المسؤولية",
@@ -95,6 +96,7 @@
     "checkGovId": "تم التحقق من الهوية الحكومية",
     "checkDisclaimer": "تم قبول إخلاء المسؤولية",
     "checkPhoto": "تم رفع صورة الملف",
+    "checkCategories": "تم اختيار الفئات",
     "viewPublicProfile": "عرض الملف العام",
     "stageNameUnset": "لم يُحدد الاسم الفني",
     "tabs": {
@@ -156,6 +158,17 @@
     "pushNotifications": "الإشعارات الفورية",
     "smsNotifications": "رسائل SMS",
     "marketingEmails": "رسائل تسويقية"
+  },
+  "categories": {
+    "title": "الفئات",
+    "hint": "اختر كل ما ينطبق. أضف شارة مخصصة إذا لم تجد فئتك.",
+    "customLabel": "فئة مخصصة",
+    "customPlaceholder": "مثال: كوميدي ستاند أب",
+    "addCustom": "إضافة مخصصة",
+    "removeCustom": "إزالة {{name}}",
+    "minRequired": "اختر فئة واحدة على الأقل.",
+    "selectedCount": "{{count}} محددة",
+    "empty": "لم يتم اختيار فئات بعد."
   },
   "availability": {
     "title": "التوفر",

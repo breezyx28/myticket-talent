@@ -1,5 +1,5 @@
 import { AvailabilityToggle } from '@/components/talent/AvailabilityToggle';
-import { Badge } from '@/components/ui/Badge';
+import { TalentCategoryBadges } from '@/components/profile/TalentCategoryBadges';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeletonBlocks } from '@/components/ui/Skeleton';
@@ -109,13 +109,11 @@ export function PublicProfilePreviewPage() {
                 ) : null}
               </div>
             ) : null}
-            <div className="mt-4 flex flex-wrap gap-2">
-              {profile.categories?.map((c) => (
-                <Badge key={c.id} variant="success">
-                  #{c.talent_category_id}
-                </Badge>
-              ))}
-            </div>
+            <TalentCategoryBadges
+              categories={profile.categories}
+              className="mt-4"
+              emptyLabel={t('categories.empty')}
+            />
           </div>
         </div>
         {profile.gallery && profile.gallery.length > 0 ? (

@@ -20,8 +20,13 @@ export type EngagementStatus =
 
 export interface TalentProfileCategory {
   id: number;
-  talent_profile_id: number;
+  talent_profile_id?: number | null;
+  talent_application_id?: number | null;
   talent_category_id: number;
+  slug: string;
+  name_en: string;
+  name_ar: string;
+  is_custom: boolean;
 }
 
 export interface TalentProfileGalleryItem {
@@ -82,6 +87,7 @@ export interface TalentApplicationDetail {
     accepted_quality_disclaimer?: boolean | null;
     profile_image?: string | null;
     media?: TalentApplicationMedia[];
+    categories?: TalentProfileCategory[];
   } | null;
 }
 

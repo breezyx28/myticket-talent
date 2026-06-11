@@ -83,6 +83,7 @@
     "checkContact": "Contact details",
     "checkBio": "Bio (min. 30 characters)",
     "checkMedia": "Portfolio media",
+    "checkCategories": "At least one category",
     "checkDisclaimer": "Quality disclaimer",
     "mediaCount": "{{count}} media items",
     "disclaimerAccepted": "Disclaimer accepted",
@@ -95,6 +96,7 @@
     "checkGovId": "Government ID verified",
     "checkDisclaimer": "Quality disclaimer accepted",
     "checkPhoto": "Profile photo uploaded",
+    "checkCategories": "Categories selected",
     "viewPublicProfile": "View public profile",
     "stageNameUnset": "Stage name not set",
     "tabs": {
@@ -156,6 +158,17 @@
     "pushNotifications": "Push notifications",
     "smsNotifications": "SMS notifications",
     "marketingEmails": "Marketing emails"
+  },
+  "categories": {
+    "title": "Categories",
+    "hint": "Select all that apply. Add a custom badge if yours is not listed.",
+    "customLabel": "Custom category",
+    "customPlaceholder": "e.g. Standup comedian",
+    "addCustom": "Add custom",
+    "removeCustom": "Remove {{name}}",
+    "minRequired": "Select at least one category.",
+    "selectedCount": "{{count}} selected",
+    "empty": "No categories selected yet."
   },
   "availability": {
     "title": "Availability",

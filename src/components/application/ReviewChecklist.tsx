@@ -30,6 +30,7 @@ export function ReviewChecklist({ detail }: { detail: TalentApplicationDetail })
     },
     { ok: (app?.bio?.trim().length ?? 0) >= TALENT_BIO_MIN_CHARS, label: t('application.checkBio') },
     { ok: (app?.media?.length ?? 0) > 0, label: t('application.checkMedia') },
+    { ok: (app?.categories?.length ?? 0) > 0, label: t('application.checkCategories') },
     { ok: Boolean(app?.accepted_quality_disclaimer), label: t('application.checkDisclaimer') },
   ];
 

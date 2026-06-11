@@ -1,4 +1,5 @@
 import type { Id, Iso8601 } from '@/api/types/common';
+import type { TalentCategoryAssignment } from '@/api/types/talentCategory';
 import type { RoleApplicationStatus } from '@/types/domain';
 
 export type RoleApplicationKind = 'talent';
@@ -76,6 +77,7 @@ export interface RoleApplicationTalentDetail {
   profile_image?: string | null;
   profile_image_url?: string | null;
   media?: TalentApplicationMedia[];
+  categories?: TalentCategoryAssignment[];
   [key: string]: unknown;
 }
 

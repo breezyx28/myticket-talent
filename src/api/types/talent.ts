@@ -1,12 +1,8 @@
 import type { Id, Iso8601, Slug } from '@/api/types/common';
+import type { TalentCategoryAssignment } from '@/api/types/talentCategory';
 import type { TalentAvailability } from '@/types/domain';
 
-export interface TalentProfileCategory {
-  id: Id;
-  talent_profile_id: Id;
-  talent_category_id: Id;
-  [key: string]: unknown;
-}
+export type TalentProfileCategory = TalentCategoryAssignment;
 
 export interface TalentProfileGalleryItem {
   id: Id;

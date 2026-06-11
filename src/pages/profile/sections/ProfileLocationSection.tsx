@@ -1,6 +1,5 @@
 import { AvailabilityToggle } from '@/components/talent/AvailabilityToggle';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import {
   useGetTalentAvailabilityQuery,
   useSetTalentAvailabilityMutation,
@@ -180,11 +179,6 @@ export function ProfileLocationSection({
         >
           /artists/{profile.slug}
         </a>
-        {profile.categories?.map((c) => (
-          <Badge key={c.id} className="mt-3 me-2">
-            #{c.talent_category_id}
-          </Badge>
-        ))}
       </div>
     </div>
   );

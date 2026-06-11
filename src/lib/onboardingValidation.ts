@@ -14,6 +14,7 @@ export function isTalentApplicationReady(app: TalentApplicationDetail): boolean 
     Boolean(t.contact_email?.trim()) &&
     (t.bio?.trim().length ?? 0) >= TALENT_BIO_MIN_CHARS &&
     (t.media?.length ?? 0) > 0 &&
+    (t.categories?.length ?? 0) > 0 &&
     Boolean(t.accepted_quality_disclaimer)
   );
 }

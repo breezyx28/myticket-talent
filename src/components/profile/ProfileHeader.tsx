@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button';
+import { TalentCategoryBadges } from '@/components/profile/TalentCategoryBadges';
 import { getTalentLiveProfileImageUrl } from '@/lib/talentApplicationFields';
 import type { TalentProfileMe } from '@/api/types/user';
 import { ENV } from '@/config/env';
@@ -23,10 +24,12 @@ export function ProfileHeader({
   profile,
   govIdVerified,
   disclaimerAccepted,
+  categoriesComplete,
 }: {
   profile: TalentProfileMe;
   govIdVerified: boolean;
   disclaimerAccepted: boolean;
+  categoriesComplete: boolean;
 }) {
   const { t } = useTranslation();
   const profileImage = getTalentLiveProfileImageUrl(profile);
@@ -48,7 +51,12 @@ export function ProfileHeader({
       )}
       <div className="min-w-0 flex-1">
         <h1 className="text-[28px] font-extrabold tracking-tight text-ink">{profile.stage_name}</h1>
-        <p className="mt-1 text-[14px] text-ink-60">{t('profile.subtitle')}</p>
+        <TalentCategoryBadges
+          categories={profile.categories}
+          className="mt-3"
+          emptyLabel={t('categories.empty')}
+        />
+        <p className="mt-2 text-[14px] text-ink-60">{t('profile.subtitle')}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <a href={publicUrl} target="_blank" rel="noreferrer">
             <Button variant="secondary" size="sm">
@@ -71,6 +79,7 @@ export function ProfileHeader({
           <CheckItem done={govIdVerified} label={t('profile.checkGovId')} />
           <CheckItem done={disclaimerAccepted} label={t('profile.checkDisclaimer')} />
           <CheckItem done={hasPhoto} label={t('profile.checkPhoto')} />
+          <CheckItem done={categoriesComplete} label={t('profile.checkCategories')} />
         </ul>
       </div>
     </div>

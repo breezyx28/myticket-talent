@@ -11,11 +11,14 @@ import {
   useGetRoleApplicationQuery,
   useGetSaudiRegionsQuery,
   useSubmitTalentApplicationMutation,
+  useSyncTalentApplicationCategoriesMutation,
   useUpdateTalentApplicationMutation,
 } from '@/api/endpoints';
 import { isTalentApplicationReady, TALENT_BIO_MAX_CHARS } from '@/lib/onboardingValidation';
 import { readApiErrorMessage, readApiFieldErrors } from '@/lib/apiErrors';
 import { resolveSubmitErrorStep } from '@/lib/applicationSubmitErrors';
+import { hasMinimumCategories } from '@/lib/talentCategories';
+import type { SyncTalentCategoryItem } from '@/api/types/talentCategory';
 import {
   getTalentCityId,
   getTalentProfileImageUrl,
@@ -35,6 +38,7 @@ import { RegionCitySelect } from '@/components/profile/RegionCitySelect';
 import { ReviewChecklist } from '@/components/application/ReviewChecklist';
 import { GovernmentIdVerificationPanel } from '@/components/profile/GovernmentIdVerificationPanel';
 import { TalentMediaGalleryEditor } from '@/components/profile/TalentMediaGalleryEditor';
+import { TalentCategoryPicker } from '@/components/profile/TalentCategoryPicker';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -80,10 +84,12 @@ export function ApplicationWizardPage() {
   const [submitApplication, { isLoading: submitting }] = useSubmitTalentApplicationMutation();
   const [addMedia] = useAddTalentMediaMutation();
   const [deleteMedia] = useDeleteTalentMediaMutation();
+  const [syncApplicationCategories] = useSyncTalentApplicationCategoriesMutation();
 
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [uploading, setUploading] = useState(false);
   const [localAppId, setLocalAppId] = useState<string | number | null>(null);
+  const [categoryPayload, setCategoryPayload] = useState<SyncTalentCategoryItem[]>([]);
 
   const effectiveId = applicationId ?? localAppId;
 
@@ -189,8 +195,22 @@ export function ApplicationWizardPage() {
   async function onProfileNext() {
     const valid = await profileForm.trigger();
     if (!valid || !effectiveId) return;
+    if (!hasMinimumCategories(categoryPayload.length)) {
+      toast.error(t('categories.minRequired'));
+      return;
+    }
     await persistPatch(profileForm.getValues());
-    goToStep(2);
+    try {
+      await syncApplicationCategories({
+        id: effectiveId,
+        body: { categories: categoryPayload },
+      }).unwrap();
+      void refetchDetail();
+      toast.success(t('common.saved'));
+      goToStep(2);
+    } catch (err) {
+      toast.error(readApiErrorMessage(err, t('common.error')));
+    }
   }
 
   async function onVerificationNext() {
@@ -393,6 +413,15 @@ export function ApplicationWizardPage() {
               <input type="checkbox" {...profileForm.register('location_public')} className="rounded border-ink-20" />
               {t('application.locationPublic')}
             </label>
+            <div className="rounded-2xl border border-ink-10 bg-surface-muted p-4">
+              <TalentCategoryPicker
+                mode="application"
+                applicationId={effectiveId ?? undefined}
+                applicationStatus={applicationStatus}
+                initialCategories={detail?.talent_application?.categories}
+                onSelectionChange={setCategoryPayload}
+              />
+            </div>
             <WizardFooter>
               <Button type="button" variant="outline" onClick={() => goToStep(0)}>
                 {t('common.back')}
@@ -461,6 +490,10 @@ export function ApplicationWizardPage() {
               <p className="mt-2 line-clamp-3">{profileForm.getValues('bio')}</p>
               <p className="mt-2 text-[12px]">
                 {t('application.mediaCount', { count: media.length })} ·{' '}
+                {t('categories.selectedCount', {
+                  count: detail?.talent_application?.categories?.length ?? 0,
+                })}{' '}
+                ·{' '}
                 {verificationForm.getValues('accepted_quality_disclaimer')
                   ? t('application.disclaimerAccepted')
                   : t('application.disclaimerMissing')}

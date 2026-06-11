@@ -12,6 +12,10 @@ import type {
   TalentApplicationMediaUpload,
   UpdateTalentApplicationRequest,
 } from '@/api/types/roleApplication';
+import type {
+  SyncTalentCategoriesRequest,
+  SyncTalentCategoriesResponse,
+} from '@/api/types/talentCategory';
 
 const TALENT = 'role-applications/talent';
 
@@ -102,6 +106,15 @@ export const roleApplicationsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['RoleApplication'],
     }),
+    syncTalentApplicationCategories: build.mutation<
+      SyncTalentCategoriesResponse,
+      { id: Id; body: SyncTalentCategoriesRequest }
+    >({
+      query: ({ id, body }) => ({ url: `/${TALENT}/${id}/categories`, method: 'PUT', body }),
+      transformResponse: (raw: unknown) =>
+        unwrapData(raw as SyncTalentCategoriesResponse | { data: SyncTalentCategoriesResponse })!,
+      invalidatesTags: ['RoleApplication'],
+    }),
   }),
 });
 
@@ -116,4 +129,5 @@ export const {
   useWithdrawTalentApplicationMutation,
   useAddTalentMediaMutation,
   useDeleteTalentMediaMutation,
+  useSyncTalentApplicationCategoriesMutation,
 } = roleApplicationsApi;

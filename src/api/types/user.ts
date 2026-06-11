@@ -1,4 +1,5 @@
 import type { Id, Iso8601 } from '@/api/types/common';
+import type { SyncTalentCategoryItem } from '@/api/types/talentCategory';
 import type { TalentProfileCategory, TalentProfileGalleryItem } from '@/api/types/talent';
 import type { TalentAvailability } from '@/types/domain';
 
@@ -93,4 +94,5 @@ export interface UpdateTalentProfileRequest {
   profile_image_url?: string | null;
   travel_ready?: boolean;
   location_public?: boolean;
+  categories?: SyncTalentCategoryItem[];
 }

@@ -2,13 +2,16 @@ import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/forms/Field';
 import { TextArea } from '@/components/forms/TextArea';
 import { TextInput } from '@/components/forms/TextInput';
-import { useUpdateTalentProfileMutation } from '@/api/endpoints';
+import { TalentCategoryPicker } from '@/components/profile/TalentCategoryPicker';
+import { useSyncTalentProfileCategoriesMutation, useUpdateTalentProfileMutation } from '@/api/endpoints';
 import { readApiErrorMessage } from '@/lib/apiErrors';
+import { hasMinimumCategories } from '@/lib/talentCategories';
+import type { SyncTalentCategoryItem } from '@/api/types/talentCategory';
 import type { RoleApplicationTalentDetail } from '@/api/types/roleApplication';
 import type { TalentProfileMe } from '@/api/types/user';
 import { updateTalentProfileSchema, type UpdateTalentProfileSchema } from '@/schemas/profile';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -21,7 +24,10 @@ export function ProfileBasicSection({
   application?: RoleApplicationTalentDetail | null;
 }) {
   const { t } = useTranslation();
-  const [updateProfile, { isLoading }] = useUpdateTalentProfileMutation();
+  const [categoryPayload, setCategoryPayload] = useState<SyncTalentCategoryItem[]>([]);
+  const [updateProfile, { isLoading: savingProfile }] = useUpdateTalentProfileMutation();
+  const [syncProfileCategories, { isLoading: savingCategories }] =
+    useSyncTalentProfileCategoriesMutation();
 
   const {
     register,
@@ -52,7 +58,13 @@ export function ProfileBasicSection({
   }, [profile, reset]);
 
   async function onSubmit(values: UpdateTalentProfileSchema) {
+    if (!hasMinimumCategories(categoryPayload.length)) {
+      toast.error(t('categories.minRequired'));
+      return;
+    }
+
     try {
+      await syncProfileCategories({ categories: categoryPayload }).unwrap();
       await updateProfile({
         stage_name: values.stage_name ?? undefined,
         bio: values.bio ?? null,
@@ -66,6 +78,8 @@ export function ProfileBasicSection({
       toast.error(readApiErrorMessage(err, t('common.error')));
     }
   }
+
+  const saving = savingProfile || savingCategories;
 
   return (
     <form className="space-y-4 rounded-3xl border border-ink-10 bg-white p-6 shadow-card-sm" onSubmit={handleSubmit(onSubmit)}>
@@ -82,6 +96,14 @@ export function ProfileBasicSection({
       <Field label={t('profile.stageName')} error={errors.stage_name?.message}>
         <TextInput {...register('stage_name')} hasError={Boolean(errors.stage_name)} />
       </Field>
+
+      <div className="rounded-2xl border border-ink-10 bg-surface-muted p-4">
+        <TalentCategoryPicker
+          mode="profile"
+          initialCategories={profile.categories}
+          onSelectionChange={setCategoryPayload}
+        />
+      </div>
       <Field label={t('profile.bio')} error={errors.bio?.message}>
         <TextArea {...register('bio')} rows={5} hasError={Boolean(errors.bio)} />
       </Field>
@@ -100,7 +122,7 @@ export function ProfileBasicSection({
         {t('profile.locationPublic')}
       </label>
 
-      <Button type="submit" variant="dark" loading={isLoading}>
+      <Button type="submit" variant="primary" loading={saving}>
         {t('profile.saveChanges')}
       </Button>
     </form>
