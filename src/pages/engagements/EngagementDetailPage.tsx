@@ -1,37 +1,35 @@
 import { Button } from '@/components/ui/Button';
-import { EngagementThread } from '@/pages/engagements/EngagementsPage';
+import { ConversationThread } from '@/pages/engagements/EngagementsPage';
 import {
   useAcceptEngagementMutation,
   useCompleteEngagementMutation,
   useDeclineEngagementMutation,
-  useListEngagementMessagesQuery,
+  useGetConversationQuery,
   useListEngagementsQuery,
-  usePostEngagementMessageMutation,
+  usePostConversationMessageMutation,
 } from '@/api/endpoints';
+import { getEngagementForConversation } from '@/lib/conversationEngagement';
 import { readApiErrorMessage } from '@/lib/apiErrors';
 import { declineEngagementSchema, engagementMessageSchema } from '@/schemas/engagement';
-import type { ListEngagementsQuery } from '@/api/types/common';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 
-const LIST_QUERY: ListEngagementsQuery = { page: 1, per_page: 50 };
+const ENGAGEMENTS_QUERY = { page: 1, per_page: 50 };
 
 export function EngagementDetailPage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
-  const { data: engagementsPaged, isLoading } = useListEngagementsQuery(LIST_QUERY);
+  const { data: conversation, isLoading, isError } = useGetConversationQuery(
+    { id: id ?? '' },
+    { skip: !id },
+  );
+  const { data: engagementsPaged } = useListEngagementsQuery(ENGAGEMENTS_QUERY);
 
   const engagement = useMemo(
-    () => (engagementsPaged?.data ?? []).find((e) => String(e.id) === id),
-    [engagementsPaged, id],
+    () => (conversation ? getEngagementForConversation(conversation, engagementsPaged?.data ?? []) : null),
+    [conversation, engagementsPaged?.data],
   );
-
-  const {
-    data: messages = [],
-    isLoading: messagesLoading,
-    isFetching: messagesFetching,
-  } = useListEngagementMessagesQuery({ id: engagement?.id ?? '' }, { skip: !engagement });
 
   const [message, setMessage] = useState('');
   const [declineReason, setDeclineReason] = useState('');
@@ -39,14 +37,14 @@ export function EngagementDetailPage() {
 
   const [acceptEngagement, { isLoading: accepting }] = useAcceptEngagementMutation();
   const [declineEngagement, { isLoading: declining }] = useDeclineEngagementMutation();
-  const [postMessage, { isLoading: posting }] = usePostEngagementMessageMutation();
+  const [postMessage, { isLoading: posting }] = usePostConversationMessageMutation();
   const [completeEngagement, { isLoading: completing }] = useCompleteEngagementMutation();
 
   async function onAccept() {
     if (!engagement) return;
     setActionError(null);
     try {
-      await acceptEngagement({ id: engagement.id, listQuery: LIST_QUERY }).unwrap();
+      await acceptEngagement({ id: engagement.id }).unwrap();
     } catch (err) {
       setActionError(readApiErrorMessage(err, t('common.error')));
     }
@@ -62,7 +60,6 @@ export function EngagementDetailPage() {
       await declineEngagement({
         id: engagement.id,
         body: { reason: validated.reason ?? undefined },
-        listQuery: LIST_QUERY,
       }).unwrap();
     } catch (err) {
       setActionError(readApiErrorMessage(err, t('common.error')));
@@ -70,14 +67,13 @@ export function EngagementDetailPage() {
   }
 
   async function onSendMessage() {
-    if (!engagement) return;
+    if (!id) return;
     setActionError(null);
     try {
       const validated = await engagementMessageSchema.validate({ body: message });
       await postMessage({
-        id: engagement.id,
+        id,
         body: { body: validated.body, attachment_url: validated.attachment_url ?? undefined },
-        listQuery: LIST_QUERY,
       }).unwrap();
       setMessage('');
     } catch (err) {
@@ -89,7 +85,7 @@ export function EngagementDetailPage() {
     if (!engagement) return;
     setActionError(null);
     try {
-      await completeEngagement({ id: engagement.id, listQuery: LIST_QUERY }).unwrap();
+      await completeEngagement({ id: engagement.id }).unwrap();
     } catch (err) {
       setActionError(readApiErrorMessage(err, t('common.error')));
     }
@@ -99,7 +95,7 @@ export function EngagementDetailPage() {
     return <p className="text-[14px] text-ink-60">{t('common.loading')}</p>;
   }
 
-  if (!engagement) {
+  if (isError || !conversation || !id) {
     return (
       <div className="rounded-2xl border border-ink-10 bg-white p-8 text-center">
         <p className="text-[14px] text-ink-60">{t('errors.notFound')}</p>
@@ -121,10 +117,10 @@ export function EngagementDetailPage() {
         </p>
       ) : null}
       <div className="rounded-2xl border border-ink-10 bg-white p-5">
-        <EngagementThread
+        <ConversationThread
+          conversationId={id}
+          conversation={conversation}
           engagement={engagement}
-          messages={messages}
-          messagesLoading={messagesLoading || messagesFetching}
           message={message}
           setMessage={setMessage}
           declineReason={declineReason}

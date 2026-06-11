@@ -190,6 +190,8 @@
     "sendMessage": "Send",
     "messagePlaceholder": "Write a message…",
     "declineReason": "Reason (optional)",
+    "unread": "Unread",
+    "viewAttachment": "View attachment",
     "status_pending": "Pending",
     "status_accepted": "Accepted",
     "status_declined": "Declined",

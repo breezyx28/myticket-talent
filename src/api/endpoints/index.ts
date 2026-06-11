@@ -12,6 +12,7 @@ export * from './auth';
 export * from './me';
 export * from './roleApplications';
 export * from './engagements';
+export * from './conversations';
 export * from './talents';
 export * from './reference';
 export * from './governmentId';

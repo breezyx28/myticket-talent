@@ -3,6 +3,7 @@ import { RequireAuth } from '@/components/auth/RequireAuth';
 import { RequireTalentCandidate } from '@/components/auth/RequireTalentCandidate';
 import { PreferencesLanguageSync } from '@/components/i18n/PreferencesLanguageSync';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
+import { RealtimeBridge } from '@/components/realtime/RealtimeBridge';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AppToaster } from '@/lib/AppToaster';
 import { ApplicationLayout } from '@/layouts/ApplicationLayout';
@@ -65,6 +66,7 @@ function RouteFallback() {
 export function App() {
   return (
     <AuthProvider>
+      <RealtimeBridge />
       <PreferencesLanguageSync />
       <AppToaster />
       <Suspense fallback={<RouteFallback />}>

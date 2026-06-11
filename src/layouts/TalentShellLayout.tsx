@@ -2,7 +2,11 @@ import { PageTransition } from '@/components/layout/PageTransition';
 import { UserMenu } from '@/components/ui/UserMenu';
 import { NAV_MAIN, NAV_MOBILE_TABS } from '@/config/nav';
 import { useAuth } from '@/hooks/useAuth';
-import { useGetPreferencesQuery, useUpdatePreferencesMutation } from '@/api/endpoints';
+import {
+  useGetConversationsUnreadCountQuery,
+  useGetPreferencesQuery,
+  useUpdatePreferencesMutation,
+} from '@/api/endpoints';
 import type { AppLanguage } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { Menu, Mic2, X } from 'lucide-react';
@@ -17,6 +21,8 @@ export function TalentShellLayout() {
   const [open, setOpen] = useState(false);
   const { data: preferences } = useGetPreferencesQuery();
   const [updatePreferences] = useUpdatePreferencesMutation();
+  const { data: unreadData } = useGetConversationsUnreadCountQuery();
+  const unreadCount = unreadData?.unread_count ?? 0;
 
   useEffect(() => {
     const next = preferences?.language;
@@ -91,32 +97,42 @@ export function TalentShellLayout() {
             </button>
           </div>
           <nav className="space-y-0.5" aria-label={t('nav.home')}>
-            {NAV_MAIN.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === '/'}
-                onClick={() => setOpen(false)}
-                className={({ isActive }) =>
-                  cn(
-                    'relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-semibold transition-colors',
-                    isActive
-                      ? 'bg-white text-ink shadow-card-sm ring-1 ring-ink-10 lg:bg-white'
-                      : 'text-ink-60 hover:bg-white/70 hover:text-ink lg:hover:bg-white/50',
-                  )
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    {isActive ? (
-                      <span className="absolute inset-y-2 start-0 w-0.5 rounded-full bg-coral" aria-hidden />
-                    ) : null}
-                    <item.icon size={18} strokeWidth={2} className={cn(isActive ? 'text-coral' : '')} />
-                    <span className={cn(isActive ? 'ps-1' : '')}>{t(item.labelKey)}</span>
-                  </>
-                )}
-              </NavLink>
-            ))}
+            {NAV_MAIN.map((item) => {
+              const showBadge = item.to === '/engagements' && unreadCount > 0;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.to === '/'}
+                  onClick={() => setOpen(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      'relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-semibold transition-colors',
+                      isActive
+                        ? 'bg-white text-ink shadow-card-sm ring-1 ring-ink-10 lg:bg-white'
+                        : 'text-ink-60 hover:bg-white/70 hover:text-ink lg:hover:bg-white/50',
+                    )
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {isActive ? (
+                        <span className="absolute inset-y-2 start-0 w-0.5 rounded-full bg-coral" aria-hidden />
+                      ) : null}
+                      <span className="relative">
+                        <item.icon size={18} strokeWidth={2} className={cn(isActive ? 'text-coral' : '')} />
+                        {showBadge ? (
+                          <span className="absolute -end-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-coral px-1 text-[9px] font-bold text-white">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className={cn(isActive ? 'ps-1' : '')}>{t(item.labelKey)}</span>
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
           </nav>
         </aside>
 
@@ -135,26 +151,36 @@ export function TalentShellLayout() {
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="flex">
-          {NAV_MOBILE_TABS.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/'}
-              className={({ isActive }) =>
-                cn(
-                  'flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition-colors',
-                  isActive ? 'text-coral' : 'text-ink-40',
-                )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <item.icon size={20} strokeWidth={isActive ? 2.25 : 2} />
-                  {t(item.labelKey)}
-                </>
-              )}
-            </NavLink>
-          ))}
+          {NAV_MOBILE_TABS.map((item) => {
+            const showBadge = item.to === '/engagements' && unreadCount > 0;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/'}
+                className={({ isActive }) =>
+                  cn(
+                    'relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition-colors',
+                    isActive ? 'text-coral' : 'text-ink-40',
+                  )
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span className="relative">
+                      <item.icon size={20} strokeWidth={isActive ? 2.25 : 2} />
+                      {showBadge ? (
+                        <span className="absolute -end-2 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-coral px-0.5 text-[8px] font-bold text-white">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      ) : null}
+                    </span>
+                    {t(item.labelKey)}
+                  </>
+                )}
+              </NavLink>
+            );
+          })}
         </div>
       </nav>
 

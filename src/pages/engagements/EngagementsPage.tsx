@@ -4,25 +4,42 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/talent/StatusPill';
 import {
+  appendConversationMessageIfNew,
   useAcceptEngagementMutation,
   useCompleteEngagementMutation,
   useDeclineEngagementMutation,
-  useListEngagementMessagesQuery,
+  useGetConversationQuery,
+  useListConversationMessagesQuery,
+  useListConversationsQuery,
   useListEngagementsQuery,
-  usePostEngagementMessageMutation,
+  useMarkConversationReadMutation,
+  usePostConversationMessageMutation,
 } from '@/api/endpoints';
+import type { Conversation, ConversationMessage } from '@/api/types/conversation';
+import type { Engagement } from '@/api/types/engagement';
+import type { ListConversationsQuery } from '@/api/types/conversation';
 import { readApiErrorMessage } from '@/lib/apiErrors';
+import {
+  filterConversationsByEngagementStatus,
+  getEngagementForConversation,
+  getEngagementStatusForConversation,
+  getOrganizerDisplayName,
+} from '@/lib/conversationEngagement';
 import { ENGAGEMENT_STATUS_FILTERS } from '@/lib/engagementsUi';
+import { leaveConversation, subscribeConversation } from '@/lib/realtime/channels';
+import type { MessagePayload } from '@/lib/realtime/types';
 import { declineEngagementSchema, engagementMessageSchema } from '@/schemas/engagement';
 import { cn } from '@/lib/utils';
-import type { Engagement, EngagementMessage } from '@/api/types/engagement';
 import type { EngagementStatus } from '@/types/domain';
-import type { ListEngagementsQuery } from '@/api/types/common';
+import { useAppDispatch } from '@/store/hooks';
 import { motion } from 'framer-motion';
 import { MessageSquare } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+
+const LIST_QUERY: ListConversationsQuery = { page: 1, per_page: 50 };
+const ENGAGEMENTS_QUERY = { page: 1, per_page: 50 };
 
 export function EngagementsPage() {
   const { t } = useTranslation();
@@ -31,62 +48,55 @@ export function EngagementsPage() {
   const focusId = searchParams.get('focus');
 
   const [statusFilter, setStatusFilter] = useState<'all' | EngagementStatus>('all');
-  const listQuery = useMemo<ListEngagementsQuery>(
-    () => ({
-      page: 1,
-      per_page: 50,
-      ...(statusFilter === 'all' ? {} : { status: statusFilter }),
-    }),
-    [statusFilter],
-  );
 
-  const { data: engagementsPaged, isLoading, isError } = useListEngagementsQuery(listQuery);
+  const { data: conversationsPaged, isLoading, isError } = useListConversationsQuery(LIST_QUERY);
+  const { data: engagementsPaged } = useListEngagementsQuery(ENGAGEMENTS_QUERY);
+  const engagements = useMemo(() => engagementsPaged?.data ?? [], [engagementsPaged?.data]);
 
-  const list = useMemo(() => engagementsPaged?.data ?? [], [engagementsPaged?.data]);
+  const list = useMemo(() => {
+    const conversations = conversationsPaged?.data ?? [];
+    return filterConversationsByEngagementStatus(conversations, engagements, statusFilter);
+  }, [conversationsPaged?.data, engagements, statusFilter]);
+
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const effectiveSelectedId = focusId ?? selectedId;
   const [message, setMessage] = useState('');
   const [declineReason, setDeclineReason] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const [acceptEngagement, { isLoading: accepting }] = useAcceptEngagementMutation();
-  const [declineEngagement, { isLoading: declining }] = useDeclineEngagementMutation();
-  const [postMessage, { isLoading: posting }] = usePostEngagementMessageMutation();
-  const [completeEngagement, { isLoading: completing }] = useCompleteEngagementMutation();
-
   const selected = useMemo(
-    () => list.find((e) => String(e.id) === String(effectiveSelectedId)) ?? null,
+    () => list.find((c) => String(c.id) === String(effectiveSelectedId)) ?? null,
     [list, effectiveSelectedId],
   );
 
-  const {
-    data: threadMessages = [],
-    isLoading: messagesLoading,
-    isFetching: messagesFetching,
-  } = useListEngagementMessagesQuery(
-    { id: selected?.id ?? '' },
-    { skip: selected == null },
+  const selectedEngagement = useMemo(
+    () => (selected ? getEngagementForConversation(selected, engagements) : null),
+    [selected, engagements],
   );
 
-  async function onAccept(id: string | number) {
+  const [acceptEngagement, { isLoading: accepting }] = useAcceptEngagementMutation();
+  const [declineEngagement, { isLoading: declining }] = useDeclineEngagementMutation();
+  const [postMessage, { isLoading: posting }] = usePostConversationMessageMutation();
+  const [completeEngagement, { isLoading: completing }] = useCompleteEngagementMutation();
+
+  async function onAccept(engagementId: string | number) {
     setActionError(null);
     try {
-      await acceptEngagement({ id, listQuery }).unwrap();
+      await acceptEngagement({ id: engagementId }).unwrap();
     } catch (err) {
       setActionError(readApiErrorMessage(err, t('common.error')));
     }
   }
 
-  async function onDecline(id: string | number) {
+  async function onDecline(engagementId: string | number) {
     setActionError(null);
     try {
       const validated = await declineEngagementSchema.validate({
         reason: declineReason.trim() || undefined,
       });
       await declineEngagement({
-        id,
+        id: engagementId,
         body: { reason: validated.reason ?? undefined },
-        listQuery,
       }).unwrap();
       setDeclineReason('');
     } catch (err) {
@@ -94,15 +104,14 @@ export function EngagementsPage() {
     }
   }
 
-  async function onSendMessage() {
-    if (!selected) return;
+  async function onSendMessage(conversationId: string | number) {
     setActionError(null);
     try {
       const validated = await engagementMessageSchema.validate({ body: message });
       await postMessage({
-        id: selected.id,
+        id: conversationId,
         body: { body: validated.body, attachment_url: validated.attachment_url ?? undefined },
-        listQuery,
+        listQuery: LIST_QUERY,
       }).unwrap();
       setMessage('');
     } catch (err) {
@@ -110,10 +119,10 @@ export function EngagementsPage() {
     }
   }
 
-  async function onComplete(id: string | number) {
+  async function onComplete(engagementId: string | number) {
     setActionError(null);
     try {
-      await completeEngagement({ id, listQuery }).unwrap();
+      await completeEngagement({ id: engagementId }).unwrap();
     } catch (err) {
       setActionError(readApiErrorMessage(err, t('common.error')));
     }
@@ -163,60 +172,74 @@ export function EngagementsPage() {
             <EmptyState icon={MessageSquare} title={t('engagements.empty')} />
           ) : (
             <ul className="space-y-1">
-              {list.map((e) => (
-                <li key={e.id}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedId(e.id);
-                      if (window.innerWidth < 1024) navigate(`/engagements/${e.id}`);
-                    }}
-                    className={cn(
-                      'relative w-full rounded-xl p-3 text-start transition-colors',
-                      String(effectiveSelectedId) === String(e.id)
-                        ? 'bg-coral/5 ring-1 ring-coral/30'
-                        : 'hover:bg-ink-5/50',
-                    )}
-                  >
-                    {String(effectiveSelectedId) === String(e.id) ? (
-                      <motion.span
-                        layoutId="engagement-selected"
-                        className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-coral/20"
-                        transition={{ type: 'spring', stiffness: 400, damping: 35 }}
-                      />
-                    ) : null}
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="font-bold text-ink">{e.organizer_profile_snapshot?.display_name ?? e.topic}</p>
-                      <StatusPill
-                        status={e.status}
-                        label={t(`engagements.status_${e.status}` as 'engagements.status_pending')}
-                      />
-                    </div>
-                    <p className="mt-1 line-clamp-2 text-[12px] text-ink-60">{e.preview || e.topic}</p>
-                    <p className="mt-2 text-[11px] text-ink-40" dir="ltr">
-                      {new Date(e.last_message_at).toLocaleString()}
-                    </p>
-                  </button>
-                </li>
-              ))}
+              {list.map((c) => {
+                const status = getEngagementStatusForConversation(c, engagements);
+                const organizerName = getOrganizerDisplayName(c);
+                const preview = c.metadata?.brief ?? c.subject;
+                return (
+                  <li key={c.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedId(c.id);
+                        if (window.innerWidth < 1024) navigate(`/engagements/${c.id}`);
+                      }}
+                      className={cn(
+                        'relative w-full rounded-xl p-3 text-start transition-colors',
+                        String(effectiveSelectedId) === String(c.id)
+                          ? 'bg-coral/5 ring-1 ring-coral/30'
+                          : 'hover:bg-ink-5/50',
+                      )}
+                    >
+                      {String(effectiveSelectedId) === String(c.id) ? (
+                        <motion.span
+                          layoutId="engagement-selected"
+                          className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-coral/20"
+                          transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+                        />
+                      ) : null}
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-bold text-ink">{organizerName !== 'Organizer' ? organizerName : c.subject}</p>
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          {c.unread ? (
+                            <span className="h-2 w-2 rounded-full bg-coral" aria-label={t('engagements.unread')} />
+                          ) : null}
+                          {status ? (
+                            <StatusPill
+                              status={status}
+                              label={t(`engagements.status_${status}` as 'engagements.status_pending')}
+                            />
+                          ) : null}
+                        </div>
+                      </div>
+                      <p className="mt-1 line-clamp-2 text-[12px] text-ink-60">{preview}</p>
+                      {c.last_message_at ? (
+                        <p className="mt-2 text-[11px] text-ink-40" dir="ltr">
+                          {new Date(c.last_message_at).toLocaleString()}
+                        </p>
+                      ) : null}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </aside>
 
         <section className="hidden lg:block">
           {selected ? (
-            <EngagementThread
-              engagement={selected}
-              messages={threadMessages}
-              messagesLoading={messagesLoading || messagesFetching}
+            <ConversationThread
+              conversationId={selected.id}
+              conversation={selected}
+              engagement={selectedEngagement}
               message={message}
               setMessage={setMessage}
               declineReason={declineReason}
               setDeclineReason={setDeclineReason}
-              onAccept={() => void onAccept(selected.id)}
-              onDecline={() => void onDecline(selected.id)}
-              onSendMessage={() => void onSendMessage()}
-              onComplete={() => void onComplete(selected.id)}
+              onAccept={() => selectedEngagement && void onAccept(selectedEngagement.id)}
+              onDecline={() => selectedEngagement && void onDecline(selectedEngagement.id)}
+              onSendMessage={() => void onSendMessage(selected.id)}
+              onComplete={() => selectedEngagement && void onComplete(selectedEngagement.id)}
               accepting={accepting}
               declining={declining}
               posting={posting}
@@ -236,10 +259,23 @@ export function EngagementsPage() {
   );
 }
 
-export function EngagementThread({
+function payloadToMessage(payload: MessagePayload): ConversationMessage {
+  return {
+    id: payload.id,
+    conversation_id: payload.conversation_id,
+    sender_user_id: payload.sender_user_id,
+    sender_role: payload.sender_role,
+    body: payload.body,
+    attachment_url: payload.attachment_url,
+    read_at: payload.read_at,
+    created_at: payload.created_at ?? new Date().toISOString(),
+  };
+}
+
+export function ConversationThread({
+  conversationId,
+  conversation: conversationProp,
   engagement,
-  messages,
-  messagesLoading = false,
   message,
   setMessage,
   declineReason,
@@ -253,9 +289,9 @@ export function EngagementThread({
   posting,
   completing,
 }: {
-  engagement: Engagement;
-  messages: EngagementMessage[];
-  messagesLoading?: boolean;
+  conversationId: string | number;
+  conversation?: Conversation;
+  engagement: Engagement | null;
   message: string;
   setMessage: (v: string) => void;
   declineReason: string;
@@ -270,54 +306,117 @@ export function EngagementThread({
   completing: boolean;
 }) {
   const { t } = useTranslation();
-  const threadMessages = messages.length > 0 ? messages : (engagement.messages ?? []);
+  const dispatch = useAppDispatch();
+  const markedReadRef = useRef(false);
+
+  const { data: fetchedConversation } = useGetConversationQuery(
+    { id: conversationId },
+    { skip: conversationProp != null },
+  );
+  const conversation = conversationProp ?? fetchedConversation;
+
+  const {
+    data: messages = [],
+    isLoading: messagesLoading,
+    isFetching: messagesFetching,
+  } = useListConversationMessagesQuery({ id: conversationId });
+
+  const [markRead] = useMarkConversationReadMutation();
+
+  useEffect(() => {
+    markedReadRef.current = false;
+  }, [conversationId]);
+
+  useEffect(() => {
+    if (!conversationId || markedReadRef.current) return;
+    markedReadRef.current = true;
+    void markRead({ id: conversationId });
+  }, [conversationId, markRead]);
+
+  useEffect(() => {
+    const id = Number(conversationId);
+    if (!Number.isFinite(id)) return;
+
+    subscribeConversation(id, (payload) => {
+      appendConversationMessageIfNew(dispatch, conversationId, payloadToMessage(payload));
+    });
+
+    return () => leaveConversation();
+  }, [conversationId, dispatch]);
+
+  const organizerName = conversation ? getOrganizerDisplayName(conversation) : 'Organizer';
+  const brief = conversation?.metadata?.brief ?? engagement?.preview;
+  const engagementStatus = engagement?.status;
+  const canCompose = conversation?.status === 'open';
 
   return (
     <>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-ink">{engagement.topic}</h2>
+          <h2 className="text-xl font-extrabold text-ink">{conversation?.subject ?? '—'}</h2>
           <p className="mt-1 text-[13px] text-ink-40">
-            {engagement.organizer_profile_snapshot?.display_name ?? 'Organizer'} ·{' '}
-            <span dir="ltr">{new Date(engagement.created_at).toLocaleString()}</span>
+            {organizerName} ·{' '}
+            <span dir="ltr">
+              {conversation?.created_at
+                ? new Date(conversation.created_at).toLocaleString()
+                : '—'}
+            </span>
           </p>
         </div>
-        <StatusPill
-          status={engagement.status}
-          label={t(`engagements.status_${engagement.status}` as 'engagements.status_pending')}
-        />
+        {engagementStatus ? (
+          <StatusPill
+            status={engagementStatus}
+            label={t(`engagements.status_${engagementStatus}` as 'engagements.status_pending')}
+          />
+        ) : null}
       </div>
 
-      {engagement.preview ? (
+      {brief ? (
         <p className="mt-4 rounded-xl border border-ink-10 bg-ink-5/50 px-4 py-3 text-[14px] leading-relaxed text-ink-60">
-          {engagement.preview}
+          {brief}
         </p>
       ) : null}
 
       <div className="mt-5 rounded-xl border border-ink-10 bg-ink-5/30 p-4">
         <ul className="max-h-[280px] space-y-2 overflow-y-auto pe-1">
-          {messagesLoading && threadMessages.length === 0 ? (
+          {messagesLoading && messages.length === 0 ? (
             <li className="rounded-xl border border-dashed border-ink-20 bg-white px-3 py-6 text-center text-[12px] text-ink-40">
               {t('engagements.loadingMessages')}
             </li>
-          ) : threadMessages.length === 0 ? (
+          ) : messages.length === 0 ? (
             <li className="rounded-xl border border-dashed border-ink-20 bg-white px-3 py-6 text-center text-[12px] text-ink-40">
               —
             </li>
           ) : (
-            threadMessages.map((msg) => (
+            messages.map((msg) => (
               <li
                 key={msg.id}
                 className={cn(
                   'rounded-xl px-3 py-2 text-[12px]',
-                  msg.sender === 'talent'
+                  msg.sender_role === 'talent'
                     ? 'ms-8 bg-ink text-white'
                     : 'me-8 border border-ink-10 bg-white text-ink-60',
                 )}
               >
                 <p>{msg.body}</p>
+                {msg.attachment_url ? (
+                  <a
+                    href={msg.attachment_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cn(
+                      'mt-1 inline-block text-[11px] underline',
+                      msg.sender_role === 'talent' ? 'text-white/80' : 'text-coral',
+                    )}
+                  >
+                    {t('engagements.viewAttachment')}
+                  </a>
+                ) : null}
                 <p
-                  className={cn('mt-1 text-[10px]', msg.sender === 'talent' ? 'text-white/70' : 'text-ink-40')}
+                  className={cn(
+                    'mt-1 text-[10px]',
+                    msg.sender_role === 'talent' ? 'text-white/70' : 'text-ink-40',
+                  )}
                   dir="ltr"
                 >
                   {new Date(msg.created_at).toLocaleString()}
@@ -326,7 +425,10 @@ export function EngagementThread({
             ))
           )}
         </ul>
-        {engagement.status === 'accepted' ? (
+        {messagesFetching && messages.length > 0 ? (
+          <p className="mt-2 text-center text-[11px] text-ink-40">{t('common.loading')}</p>
+        ) : null}
+        {canCompose ? (
           <div
             className="sticky bottom-0 mt-3 flex gap-2 border-t border-ink-10 bg-white pt-3"
             style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
@@ -345,7 +447,7 @@ export function EngagementThread({
         ) : null}
       </div>
 
-      {engagement.status === 'pending' ? (
+      {engagementStatus === 'pending' ? (
         <div className="mt-6 space-y-3">
           <input
             value={declineReason}
@@ -364,7 +466,7 @@ export function EngagementThread({
         </div>
       ) : null}
 
-      {engagement.status === 'accepted' ? (
+      {engagementStatus === 'accepted' ? (
         <Button className="mt-6" variant="secondary" loading={completing} onClick={onComplete}>
           {t('engagements.complete')}
         </Button>
@@ -372,3 +474,6 @@ export function EngagementThread({
     </>
   );
 }
+
+/** @deprecated Use ConversationThread */
+export const EngagementThread = ConversationThread;

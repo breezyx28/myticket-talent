@@ -43,6 +43,7 @@ export const engagementsApi = baseApi.injectEndpoints({
       invalidatesTags: (_res, _err, arg) => [
         { type: 'Engagement', id: arg.id },
         { type: 'Engagement', id: 'LIST' },
+        { type: 'Conversation', id: 'LIST' },
         engagementMessagesTag(arg.id),
         'TalentAvailability',
         'TalentProfile',
@@ -62,6 +63,7 @@ export const engagementsApi = baseApi.injectEndpoints({
       invalidatesTags: (_res, _err, arg) => [
         { type: 'Engagement', id: arg.id },
         { type: 'Engagement', id: 'LIST' },
+        { type: 'Conversation', id: 'LIST' },
         engagementMessagesTag(arg.id),
       ],
     }),
@@ -128,6 +130,7 @@ export const engagementsApi = baseApi.injectEndpoints({
       invalidatesTags: (_res, _err, arg) => [
         { type: 'Engagement', id: arg.id },
         { type: 'Engagement', id: 'LIST' },
+        { type: 'Conversation', id: 'LIST' },
         engagementMessagesTag(arg.id),
         'TalentAvailability',
         'TalentProfile',

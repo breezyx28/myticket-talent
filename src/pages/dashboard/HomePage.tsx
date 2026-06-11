@@ -7,9 +7,15 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import {
   useGetTalentAvailabilityQuery,
   useGetTalentProfileQuery,
+  useListConversationsQuery,
   useListEngagementsQuery,
 } from '@/api/endpoints';
+import type { Conversation } from '@/api/types/conversation';
 import { ENV } from '@/config/env';
+import {
+  getEngagementStatusForConversation,
+  getOrganizerDisplayName,
+} from '@/lib/conversationEngagement';
 import { CalendarCheck, MessageSquare, Star, Ticket } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,19 +26,25 @@ export function HomePage() {
   const { data: profile } = useGetTalentProfileQuery();
   const { data: availability } = useGetTalentAvailabilityQuery();
   const { data: engagements } = useListEngagementsQuery({ page: 1, per_page: 50 });
+  const { data: conversationsPaged } = useListConversationsQuery({ page: 1, per_page: 50 });
+
+  const engagementList = useMemo(() => engagements?.data ?? [], [engagements?.data]);
 
   const pendingCount = useMemo(
-    () => (engagements?.data ?? []).filter((e) => e.status === 'pending').length,
-    [engagements],
+    () => engagementList.filter((e) => e.status === 'pending').length,
+    [engagementList],
   );
 
-  const recent = useMemo(
-    () =>
-      [...(engagements?.data ?? [])]
-        .sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime())
-        .slice(0, 5),
-    [engagements],
-  );
+  const recent = useMemo(() => {
+    const conversations = conversationsPaged?.data ?? [];
+    return [...conversations]
+      .sort((a, b) => {
+        const aTime = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+        const bTime = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+        return bTime - aTime;
+      })
+      .slice(0, 5);
+  }, [conversationsPaged?.data]);
 
   const availabilityStatus = availability?.status ?? profile?.availability_status ?? 'available';
 
@@ -133,26 +145,35 @@ export function HomePage() {
           />
         ) : (
           <ul className="divide-y divide-ink-10">
-            {recent.map((e) => (
-              <li key={e.id}>
-                <Link
-                  to={`/engagements?focus=${e.id}`}
-                  className="flex items-center justify-between gap-4 py-4 transition-colors hover:bg-ink-5/50"
-                >
-                  <div className="min-w-0">
-                    <p className="font-semibold text-ink">{e.topic}</p>
-                    <p className="mt-0.5 text-[12px] text-ink-40">
-                      {e.organizer_profile_snapshot?.display_name ?? t('engagements.organizer')} ·{' '}
-                      <span dir="ltr">{new Date(e.last_message_at).toLocaleString()}</span>
-                    </p>
-                  </div>
-                  <StatusPill
-                    status={e.status}
-                    label={t(`engagements.status_${e.status}` as 'engagements.status_pending')}
-                  />
-                </Link>
-              </li>
-            ))}
+            {recent.map((c: Conversation) => {
+              const status = getEngagementStatusForConversation(c, engagementList);
+              return (
+                <li key={c.id}>
+                  <Link
+                    to={`/engagements?focus=${c.id}`}
+                    className="flex items-center justify-between gap-4 py-4 transition-colors hover:bg-ink-5/50"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-semibold text-ink">{c.subject}</p>
+                      <p className="mt-0.5 text-[12px] text-ink-40">
+                        {getOrganizerDisplayName(c)} ·{' '}
+                        {c.last_message_at ? (
+                          <span dir="ltr">{new Date(c.last_message_at).toLocaleString()}</span>
+                        ) : (
+                          '—'
+                        )}
+                      </p>
+                    </div>
+                    {status ? (
+                      <StatusPill
+                        status={status}
+                        label={t(`engagements.status_${status}` as 'engagements.status_pending')}
+                      />
+                    ) : null}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

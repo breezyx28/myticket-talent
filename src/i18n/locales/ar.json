@@ -190,6 +190,8 @@
     "sendMessage": "إرسال",
     "messagePlaceholder": "اكتب رسالة…",
     "declineReason": "السبب (اختياري)",
+    "unread": "غير مقروء",
+    "viewAttachment": "عرض المرفق",
     "status_pending": "قيد الانتظار",
     "status_accepted": "مقبول",
     "status_declined": "مرفوض",

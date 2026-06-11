@@ -19,6 +19,7 @@ import {
 import { OAUTH_REDIRECT_KEY, OAUTH_STATE_KEY } from '@/lib/oauth';
 import { authErrorMessage, isTwoFactorRequiredError } from '@/lib/authErrors';
 import { normalizeUserMe, parseAuthResponse, pickUserRole } from '@/lib/authMapper';
+import { disconnectEcho } from '@/lib/realtime/echo';
 import { resolvePostLoginRoute } from '@/lib/resolvePostLoginRoute';
 import type { AppDispatch } from '@/store';
 import { useAppDispatch } from '@/store/hooks';
@@ -202,6 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       /* still clear client session */
     }
+    disconnectEcho();
     clearTokens();
     dispatch(baseApi.util.resetApiState());
   }, [dispatch, logoutMutation]);
