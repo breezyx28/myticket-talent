@@ -96,3 +96,12 @@ export interface UpdateTalentProfileRequest {
   location_public?: boolean;
   categories?: SyncTalentCategoryItem[];
 }
+
+export interface ProfileImageUploadResult {
+  user_id: Id;
+  profile_image_url: string;
+  avatar_url: string;
+  content_type: string;
+  size_bytes: number;
+  synced_profiles: string[];
+}

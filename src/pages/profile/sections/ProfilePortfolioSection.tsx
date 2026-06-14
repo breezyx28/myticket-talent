@@ -1,5 +1,6 @@
 import { FileUploadButton } from '@/components/profile/FileUploadButton';
 import { TalentMediaGalleryEditor } from '@/components/profile/TalentMediaGalleryEditor';
+import { useGetMeQuery } from '@/api/endpoints';
 import { useTalentProfileUploads } from '@/hooks/useTalentProfileUploads';
 import type { RoleApplicationDetail } from '@/api/types/roleApplication';
 import type { TalentProfileMe } from '@/api/types/user';
@@ -14,10 +15,13 @@ export function ProfilePortfolioSection({
   applicationDetail?: RoleApplicationDetail | null;
 }) {
   const { t } = useTranslation();
+  const { data: me } = useGetMeQuery();
   const application = applicationDetail?.talent_application;
   const media = application?.media ?? [];
   const profileImage =
-    getTalentLiveProfileImageUrl(profile) ?? getTalentProfileImageUrl(application ?? undefined);
+    getTalentLiveProfileImageUrl(profile) ??
+    getTalentLiveProfileImageUrl(me) ??
+    getTalentProfileImageUrl(application ?? undefined);
 
   const { uploading, canEditApplication, uploadProfileImage, uploadMedia, removeMedia } =
     useTalentProfileUploads({
@@ -43,7 +47,7 @@ export function ProfilePortfolioSection({
           )}
           <FileUploadButton
             label={t('profile.uploadHeadshot')}
-            accept="image/*"
+            accept="image/jpeg,image/png,image/gif,image/webp"
             loading={uploading}
             onFile={(file) => void uploadProfileImage(file)}
           />

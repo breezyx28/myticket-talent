@@ -1,12 +1,7 @@
-import {
-  useAddTalentMediaMutation,
-  useDeleteTalentMediaMutation,
-  useUpdateTalentApplicationMutation,
-  useUpdateTalentProfileMutation,
-} from '@/api/endpoints';
+import { useAddTalentMediaMutation, useDeleteTalentMediaMutation, useUploadMeProfileImageMutation } from '@/api/endpoints';
 import { readApiErrorMessage } from '@/lib/apiErrors';
 import { canEditTalentApplication } from '@/lib/roleApplicationEdit';
-import { uploadToCdn } from '@/lib/upload';
+import { ProfileImageValidationError, uploadToCdn, validateProfileImageFile } from '@/lib/upload';
 import type { RoleApplicationStatus } from '@/types/domain';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -21,8 +16,7 @@ export function useTalentProfileUploads(input: {
 }) {
   const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
-  const [updateProfile] = useUpdateTalentProfileMutation();
-  const [updateApplication] = useUpdateTalentApplicationMutation();
+  const [uploadMeProfileImage] = useUploadMeProfileImageMutation();
   const [addMedia] = useAddTalentMediaMutation();
   const [deleteMedia] = useDeleteTalentMediaMutation();
 
@@ -32,22 +26,24 @@ export function useTalentProfileUploads(input: {
     async (file: File) => {
       setUploading(true);
       try {
-        const { url } = await uploadToCdn(file);
-
-        if (canEditApplication && input.applicationId) {
-          await updateApplication({ id: input.applicationId, body: { profile_image: url } }).unwrap();
-        } else {
-          await updateProfile({ profile_image: url }).unwrap();
-        }
-
+        validateProfileImageFile(file);
+        await uploadMeProfileImage(file).unwrap();
         toast.success(t('common.saved'));
       } catch (err) {
+        if (err instanceof ProfileImageValidationError) {
+          toast.error(
+            err.message === 'too_large'
+              ? t('profile.imageTooLarge')
+              : t('profile.imageInvalidType'),
+          );
+          return;
+        }
         toast.error(readApiErrorMessage(err, t('profile.imageUpdateFailed')));
       } finally {
         setUploading(false);
       }
     },
-    [canEditApplication, input.applicationId, t, updateApplication, updateProfile],
+    [t, uploadMeProfileImage],
   );
 
   const uploadMedia = useCallback(

@@ -123,6 +123,8 @@
     "headshotHint": "ارفع صورة واضحة لبطاقتك في السوق.",
     "uploadHeadshot": "رفع صورة",
     "imageUpdateFailed": "تعذّر تحديث الصورة. حاول مرة أخرى.",
+    "imageInvalidType": "استخدم صورة بصيغة JPEG أو PNG أو GIF أو WebP.",
+    "imageTooLarge": "يجب ألا يتجاوز حجم الصورة 4 ميغابايت.",
     "mediaUpdateFailed": "تعذّر إضافة الوسائط. تحديث المعرض بعد الموافقة قد يتطلب endpoint من الـ API.",
     "portfolioApiNote": "تحديث المعرض المباشر بعد الموافقة غير مدعوم بعد في الـ API.",
     "mediaGallery": "معرض الوسائط",

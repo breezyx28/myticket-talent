@@ -7,12 +7,14 @@ import {
   useAddTalentMediaMutation,
   useCreateTalentApplicationMutation,
   useDeleteTalentMediaMutation,
+  useGetMeQuery,
   useGetMyRoleApplicationsQuery,
   useGetRoleApplicationQuery,
   useGetSaudiRegionsQuery,
   useSubmitTalentApplicationMutation,
   useSyncTalentApplicationCategoriesMutation,
   useUpdateTalentApplicationMutation,
+  useUploadMeProfileImageMutation,
 } from '@/api/endpoints';
 import { isTalentApplicationReady, TALENT_BIO_MAX_CHARS } from '@/lib/onboardingValidation';
 import { readApiErrorMessage, readApiFieldErrors } from '@/lib/apiErrors';
@@ -21,10 +23,11 @@ import { hasMinimumCategories } from '@/lib/talentCategories';
 import type { SyncTalentCategoryItem } from '@/api/types/talentCategory';
 import {
   getTalentCityId,
+  getTalentLiveProfileImageUrl,
   getTalentProfileImageUrl,
   getTalentRegionId,
 } from '@/lib/talentApplicationFields';
-import { uploadToCdn } from '@/lib/upload';
+import { ProfileImageValidationError, uploadToCdn, validateProfileImageFile } from '@/lib/upload';
 import {
   createTalentApplicationSchema,
   talentApplicationPatchSchema,
@@ -68,6 +71,7 @@ export function ApplicationWizardPage() {
   );
 
   const { data: myApps, isLoading: loadingApps } = useGetMyRoleApplicationsQuery();
+  const { data: me } = useGetMeQuery();
   const applicationId = myApps?.talent?.id;
   const applicationStatus = myApps?.talent?.status;
 
@@ -85,6 +89,7 @@ export function ApplicationWizardPage() {
   const [addMedia] = useAddTalentMediaMutation();
   const [deleteMedia] = useDeleteTalentMediaMutation();
   const [syncApplicationCategories] = useSyncTalentApplicationCategoriesMutation();
+  const [uploadMeProfileImage] = useUploadMeProfileImageMutation();
 
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [uploading, setUploading] = useState(false);
@@ -221,15 +226,19 @@ export function ApplicationWizardPage() {
   }
 
   async function onProfileImageUpload(file: File) {
-    if (!effectiveId) return;
     setUploading(true);
     try {
-      const { url } = await uploadToCdn(file);
-      await updateApplication({ id: effectiveId, body: { profile_image: url } }).unwrap();
-      void refetchDetail();
+      validateProfileImageFile(file);
+      await uploadMeProfileImage(file).unwrap();
       toast.success(t('common.saved'));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t('common.error'));
+      if (err instanceof ProfileImageValidationError) {
+        toast.error(
+          err.message === 'too_large' ? t('profile.imageTooLarge') : t('profile.imageInvalidType'),
+        );
+        return;
+      }
+      toast.error(readApiErrorMessage(err, t('profile.imageUpdateFailed')));
     } finally {
       setUploading(false);
     }
@@ -326,7 +335,8 @@ export function ApplicationWizardPage() {
   }
 
   const media = detail?.talent_application?.media ?? [];
-  const profileImage = getTalentProfileImageUrl(detail?.talent_application);
+  const profileImage =
+    getTalentLiveProfileImageUrl(me) ?? getTalentProfileImageUrl(detail?.talent_application);
   const readyForSubmit = detail ? isTalentApplicationReady(detail as TalentApplicationDetail) : false;
 
   return (
@@ -373,9 +383,8 @@ export function ApplicationWizardPage() {
                 ) : null}
                 <FileUploadButton
                   label={t('profile.uploadHeadshot')}
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
                   loading={uploading}
-                  disabled={!effectiveId}
                   onFile={(file) => void onProfileImageUpload(file)}
                 />
               </div>

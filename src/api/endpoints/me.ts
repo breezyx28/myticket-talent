@@ -2,6 +2,7 @@ import { baseApi } from '@/api/baseApi';
 import { unwrapData } from '@/api/types/common';
 import type { ResourceEnvelope } from '@/api/types/common';
 import type {
+  ProfileImageUploadResult,
   TalentAvailabilityResponse,
   TalentProfileMe,
   UpdateTalentAvailabilityRequest,
@@ -11,6 +12,7 @@ import type {
   UserPreferences,
   UserPreferencesResponse,
 } from '@/api/types/user';
+import { uploadProfileImage as postProfileImage } from '@/lib/upload';
 
 function unwrapUserMeResponse(response: unknown): UserMe {
   if (response && typeof response === 'object' && 'data' in response) {
@@ -61,6 +63,22 @@ export const meApi = baseApi.injectEndpoints({
       transformResponse: (response: unknown) => unwrapData(response as TalentProfileMe | { data: TalentProfileMe })!,
       invalidatesTags: ['TalentProfile', 'Me'],
     }),
+    uploadMeProfileImage: build.mutation<ProfileImageUploadResult, File>({
+      queryFn: async (file) => {
+        try {
+          const data = await postProfileImage(file);
+          return { data };
+        } catch (err) {
+          return {
+            error: {
+              status: 'CUSTOM_ERROR',
+              error: err instanceof Error ? err.message : 'Upload failed.',
+            },
+          };
+        }
+      },
+      invalidatesTags: ['Me', 'TalentProfile', 'RoleApplication'],
+    }),
   }),
 });
 
@@ -73,4 +91,5 @@ export const {
   useSetTalentAvailabilityMutation,
   useGetTalentProfileQuery,
   useUpdateTalentProfileMutation,
+  useUploadMeProfileImageMutation,
 } = meApi;

@@ -29,6 +29,14 @@ describe('talentApplicationFields', () => {
     ).toBe('https://cdn/b.jpg');
   });
 
+  it('falls back to avatar_url when profile image fields are empty', () => {
+    expect(
+      getTalentLiveProfileImageUrl({
+        avatar_url: 'https://cdn/avatar.jpg',
+      }),
+    ).toBe('https://cdn/avatar.jpg');
+  });
+
   it('resolves live profile image alias', () => {
     expect(
       getTalentLiveProfileImageUrl({

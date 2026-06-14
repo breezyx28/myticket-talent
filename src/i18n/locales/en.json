@@ -123,6 +123,8 @@
     "headshotHint": "Upload a clear headshot for your public marketplace card.",
     "uploadHeadshot": "Upload photo",
     "imageUpdateFailed": "Could not update profile photo. Please try again.",
+    "imageInvalidType": "Use a JPEG, PNG, GIF, or WebP image.",
+    "imageTooLarge": "Image must be 4 MB or smaller.",
     "mediaUpdateFailed": "Could not add media. Gallery updates after approval may require a backend endpoint.",
     "portfolioApiNote": "Live gallery updates after approval are not yet supported by the API.",
     "mediaGallery": "Media gallery",

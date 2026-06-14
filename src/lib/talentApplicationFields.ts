@@ -4,15 +4,18 @@ import type { TalentProfileMe } from '@/api/types/user';
 export type ProfileImageFields = {
   profile_image?: string | null;
   profile_image_url?: string | null;
+  avatar_url?: string | null;
 };
 
-/** Prefer API alias `profile_image`, fall back to canonical `profile_image_url`. */
+/** Prefer API alias `profile_image`, fall back to canonical `profile_image_url`, then `avatar_url`. */
 export function resolveProfileImageUrl(source: ProfileImageFields | null | undefined): string | null {
   if (!source) return null;
   const alias = source.profile_image;
   if (typeof alias === 'string' && alias.trim()) return alias;
   const canonical = source.profile_image_url;
   if (typeof canonical === 'string' && canonical.trim()) return canonical;
+  const avatar = source.avatar_url;
+  if (typeof avatar === 'string' && avatar.trim()) return avatar;
   return null;
 }
 
