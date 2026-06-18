@@ -29,20 +29,21 @@ import {
 } from '@/lib/talentApplicationFields';
 import { ProfileImageValidationError, uploadToCdn, validateProfileImageFile } from '@/lib/upload';
 import {
-  createTalentApplicationSchema,
-  talentApplicationPatchSchema,
+  buildCreateTalentApplicationSchema,
+  buildTalentApplicationPatchSchema,
   type CreateTalentApplicationSchema,
   type TalentApplicationPatchSchema,
 } from '@/schemas';
 import type { TalentApplicationDetail } from '@/types/domain';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { useLocalizedYupResolver } from '@/hooks/useLocalizedYupResolver';
+import { useRevalidateFormOnLanguageChange } from '@/hooks/useRevalidateFormOnLanguageChange';
 import { FileUploadButton } from '@/components/profile/FileUploadButton';
 import { RegionCitySelect } from '@/components/profile/RegionCitySelect';
 import { ReviewChecklist } from '@/components/application/ReviewChecklist';
 import { GovernmentIdVerificationPanel } from '@/components/profile/GovernmentIdVerificationPanel';
 import { TalentMediaGalleryEditor } from '@/components/profile/TalentMediaGalleryEditor';
 import { TalentCategoryPicker } from '@/components/profile/TalentCategoryPicker';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
@@ -62,7 +63,7 @@ function WizardFooter({ children }: { children: ReactNode }) {
 }
 
 export function ApplicationWizardPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const stepIndex = Math.min(
@@ -98,13 +99,18 @@ export function ApplicationWizardPage() {
 
   const effectiveId = applicationId ?? localAppId;
 
+  const createSchema = useMemo(() => buildCreateTalentApplicationSchema(t), [t, i18n.language]);
+  const patchSchema = useMemo(() => buildTalentApplicationPatchSchema(t), [t, i18n.language]);
+  const createResolver = useLocalizedYupResolver(createSchema);
+  const patchResolver = useLocalizedYupResolver(patchSchema);
+
   const identityForm = useForm<CreateTalentApplicationSchema>({
-    resolver: yupResolver(createTalentApplicationSchema) as never,
+    resolver: createResolver as never,
     defaultValues: { stage_name: '', contact_email: '', contact_phone: '' },
   });
 
   const profileForm = useForm<TalentApplicationPatchSchema>({
-    resolver: yupResolver(talentApplicationPatchSchema) as never,
+    resolver: patchResolver as never,
     defaultValues: {
       bio: '',
       saudi_region_id: undefined,
@@ -115,12 +121,16 @@ export function ApplicationWizardPage() {
   });
 
   const verificationForm = useForm<TalentApplicationPatchSchema>({
-    resolver: yupResolver(talentApplicationPatchSchema) as never,
+    resolver: patchResolver as never,
     defaultValues: {
       certificate_name: '',
       accepted_quality_disclaimer: false,
     },
   });
+
+  useRevalidateFormOnLanguageChange(identityForm.trigger);
+  useRevalidateFormOnLanguageChange(profileForm.trigger);
+  useRevalidateFormOnLanguageChange(verificationForm.trigger);
 
   useEffect(() => {
     const ta = detail?.talent_application;

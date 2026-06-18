@@ -13,6 +13,7 @@ import type {
   UserPreferencesResponse,
 } from '@/api/types/user';
 import { uploadProfileImage as postProfileImage } from '@/lib/upload';
+import i18n from '@/i18n';
 
 function unwrapUserMeResponse(response: unknown): UserMe {
   if (response && typeof response === 'object' && 'data' in response) {
@@ -72,7 +73,7 @@ export const meApi = baseApi.injectEndpoints({
           return {
             error: {
               status: 'CUSTOM_ERROR',
-              error: err instanceof Error ? err.message : 'Upload failed.',
+              error: err instanceof Error ? err.message : i18n.t('errors.uploadFailed'),
             },
           };
         }

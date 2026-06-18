@@ -21,7 +21,7 @@ export function OAuthCallbackPage() {
   const [error, setError] = useState<string | null>(() => {
     if (providerError) return decodeURIComponent(providerError);
     if (!provider || !code) {
-      return 'Missing authorization code from the provider. Please try signing in again.';
+      return t('auth.oauthMissingCode');
     }
     return null;
   });
@@ -43,9 +43,12 @@ export function OAuthCallbackPage() {
         navigate(safe, { replace: true });
       })
       .catch((e) => {
-        setError(authErrorMessage(e, 'We could not finish signing you in.'));
+        setError(authErrorMessage(e, t('auth.oauthFailed')));
       });
-  }, [code, completeOAuthCallback, error, navigate, provider, state]);
+  }, [code, completeOAuthCallback, error, navigate, provider, state, t]);
+
+  const providerLabel =
+    provider === 'google' ? 'Google' : (provider ?? t('auth.oauthProvider'));
 
   return (
     <div className="mx-auto w-full max-w-md rounded-3xl border border-ink-10 bg-white p-8 shadow-card-lg">
@@ -53,10 +56,10 @@ export function OAuthCallbackPage() {
         {t('auth.signIn')}
       </p>
       <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-ink">
-        {error ? 'Sign-in failed' : `Finishing ${provider ?? 'OAuth'} sign-in…`}
+        {error ? t('auth.oauthFailed') : t('auth.oauthFinishing', { provider: providerLabel })}
       </h1>
       <p className="mt-2 text-[14px] text-ink-60">
-        {error ? 'Please try again or use email and password.' : 'Verifying your authorization with the provider.'}
+        {error ? t('auth.oauthTryAgain') : t('auth.oauthVerifying')}
       </p>
 
       {error ? (

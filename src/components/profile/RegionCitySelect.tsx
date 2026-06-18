@@ -1,6 +1,7 @@
 import { Field } from '@/components/forms/Field';
 import { Select } from '@/components/forms/Select';
 import type { SaudiRegionRef } from '@/api/types/reference';
+import { getSaudiCityLabel, getSaudiRegionLabel } from '@/lib/referenceLabels';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TalentApplicationPatchSchema } from '@/schemas';
@@ -21,12 +22,14 @@ export function RegionCitySelect({
   disabled?: boolean;
   errors?: FieldErrors<TalentApplicationPatchSchema>;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const cities = useMemo(() => {
     const region = regions.find((r) => r.id === selectedRegionId);
     return region?.cities ?? [];
   }, [regions, selectedRegionId]);
+
+  const emptyOption = t('common.empty');
 
   return (
     <>
@@ -39,20 +42,20 @@ export function RegionCitySelect({
             setValue('city', undefined);
           }}
         >
-          <option value="">—</option>
+          <option value="">{emptyOption}</option>
           {regions.map((r) => (
             <option key={r.id} value={r.id}>
-              {r.name}
+              {getSaudiRegionLabel(r, i18n.language)}
             </option>
           ))}
         </Select>
       </Field>
       <Field label={t('application.city')} error={errors?.city?.message}>
         <Select {...register('city', { valueAsNumber: true })} disabled={disabled || !selectedRegionId}>
-          <option value="">—</option>
+          <option value="">{emptyOption}</option>
           {cities.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
+              {getSaudiCityLabel(c, i18n.language)}
             </option>
           ))}
         </Select>

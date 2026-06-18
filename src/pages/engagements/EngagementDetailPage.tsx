@@ -10,7 +10,9 @@ import {
 } from '@/api/endpoints';
 import { getEngagementForConversation } from '@/lib/conversationEngagement';
 import { readApiErrorMessage } from '@/lib/apiErrors';
-import { declineEngagementSchema, engagementMessageSchema } from '@/schemas/engagement';
+import { isValidationError, useLocalizedActionError } from '@/hooks/useLocalizedActionError';
+import { buildDeclineEngagementSchema, buildEngagementMessageSchema } from '@/schemas/engagement';
+import { ChevronLeft } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
@@ -33,7 +35,7 @@ export function EngagementDetailPage() {
 
   const [message, setMessage] = useState('');
   const [declineReason, setDeclineReason] = useState('');
-  const [actionError, setActionError] = useState<string | null>(null);
+  const { error: actionError, clearError, setApiError, setValidationError } = useLocalizedActionError();
 
   const [acceptEngagement, { isLoading: accepting }] = useAcceptEngagementMutation();
   const [declineEngagement, { isLoading: declining }] = useDeclineEngagementMutation();
@@ -42,19 +44,19 @@ export function EngagementDetailPage() {
 
   async function onAccept() {
     if (!engagement) return;
-    setActionError(null);
+    clearError();
     try {
       await acceptEngagement({ id: engagement.id }).unwrap();
     } catch (err) {
-      setActionError(readApiErrorMessage(err, t('common.error')));
+      setApiError(readApiErrorMessage(err, t('common.error')));
     }
   }
 
   async function onDecline() {
     if (!engagement) return;
-    setActionError(null);
+    clearError();
     try {
-      const validated = await declineEngagementSchema.validate({
+      const validated = await buildDeclineEngagementSchema(t).validate({
         reason: declineReason.trim() || undefined,
       });
       await declineEngagement({
@@ -62,32 +64,56 @@ export function EngagementDetailPage() {
         body: { reason: validated.reason ?? undefined },
       }).unwrap();
     } catch (err) {
-      setActionError(readApiErrorMessage(err, t('common.error')));
+      if (isValidationError(err)) {
+        setValidationError(err.message, async () => {
+          try {
+            await buildDeclineEngagementSchema(t).validate({
+              reason: declineReason.trim() || undefined,
+            });
+            return null;
+          } catch (e) {
+            return isValidationError(e) ? e.message : null;
+          }
+        });
+        return;
+      }
+      setApiError(readApiErrorMessage(err, t('common.error')));
     }
   }
 
   async function onSendMessage() {
     if (!id) return;
-    setActionError(null);
+    clearError();
     try {
-      const validated = await engagementMessageSchema.validate({ body: message });
+      const validated = await buildEngagementMessageSchema(t).validate({ body: message });
       await postMessage({
         id,
         body: { body: validated.body, attachment_url: validated.attachment_url ?? undefined },
       }).unwrap();
       setMessage('');
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : readApiErrorMessage(err, t('common.error')));
+      if (isValidationError(err)) {
+        setValidationError(err.message, async () => {
+          try {
+            await buildEngagementMessageSchema(t).validate({ body: message });
+            return null;
+          } catch (e) {
+            return isValidationError(e) ? e.message : null;
+          }
+        });
+        return;
+      }
+      setApiError(err instanceof Error ? err.message : readApiErrorMessage(err, t('common.error')));
     }
   }
 
   async function onComplete() {
     if (!engagement) return;
-    setActionError(null);
+    clearError();
     try {
       await completeEngagement({ id: engagement.id }).unwrap();
     } catch (err) {
-      setActionError(readApiErrorMessage(err, t('common.error')));
+      setApiError(readApiErrorMessage(err, t('common.error')));
     }
   }
 
@@ -108,8 +134,12 @@ export function EngagementDetailPage() {
 
   return (
     <div className="space-y-4 lg:hidden">
-      <Link to="/engagements" className="text-[13px] font-semibold text-coral hover:underline">
-        ← {t('common.back')}
+      <Link
+        to="/engagements"
+        className="inline-flex items-center gap-1 text-[13px] font-semibold text-coral hover:underline"
+      >
+        <ChevronLeft size={16} className="rtl:rotate-180" aria-hidden />
+        {t('common.back')}
       </Link>
       {actionError ? (
         <p className="rounded-xl border border-coral/30 bg-coral/10 px-4 py-3 text-[13px] font-medium text-coral">

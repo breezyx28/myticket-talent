@@ -23,6 +23,7 @@ import { disconnectEcho } from '@/lib/realtime/echo';
 import { resolvePostLoginRoute } from '@/lib/resolvePostLoginRoute';
 import type { AppDispatch } from '@/store';
 import { useAppDispatch } from '@/store/hooks';
+import i18n from '@/i18n';
 import {
   TalentAuthContext,
   type AuthContextValue,
@@ -149,7 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (provider: 'google' = 'google') => {
       const result = await oauthStartMutation({ provider }).unwrap();
       const url = result.redirect_url;
-      if (!url) throw new Error('Provider did not return a redirect URL.');
+      if (!url) throw new Error(i18n.t('auth.providerRedirectMissing'));
       if (result.state) sessionStorage.setItem(OAUTH_STATE_KEY, result.state);
       else sessionStorage.removeItem(OAUTH_STATE_KEY);
       const here = `${window.location.pathname}${window.location.search}`;
@@ -163,7 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (provider: string, code: string, state: string | null): Promise<string> => {
       const expected = sessionStorage.getItem(OAUTH_STATE_KEY);
       if (expected && state && expected !== state) {
-        throw new Error('OAuth state mismatch. Try signing in again.');
+        throw new Error(i18n.t('auth.oauthStateMismatch'));
       }
       sessionStorage.removeItem(OAUTH_STATE_KEY);
 
@@ -174,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const parsed = parseAuthResponse(response);
 
       if ('twoFactor' in parsed) {
-        throw new Error(parsed.twoFactor.message ?? 'Two-factor authentication is required.');
+        throw new Error(parsed.twoFactor.message ?? i18n.t('auth.twoFactorRequired'));
       }
 
       persistAuthCookies({
@@ -189,7 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (role === 'organizer' || role === 'vendor') {
         clearTokens();
         dispatch(baseApi.util.resetApiState());
-        throw new Error('This dashboard is for talent accounts only.');
+        throw new Error(i18n.t('auth.talentOnly'));
       }
 
       return redirectTo;

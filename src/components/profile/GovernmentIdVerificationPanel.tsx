@@ -11,12 +11,13 @@ import type { GovernmentIdDocumentType } from '@/api/types/governmentId';
 import { readApiErrorMessage } from '@/lib/apiErrors';
 import { uploadToCdn } from '@/lib/upload';
 import {
-  governmentIdVerificationSchema,
+  buildGovernmentIdVerificationSchema,
   type GovernmentIdVerificationSchema,
 } from '@/schemas/governmentId';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { useLocalizedYupResolver } from '@/hooks/useLocalizedYupResolver';
+import { useRevalidateFormOnLanguageChange } from '@/hooks/useRevalidateFormOnLanguageChange';
 import { AlertCircle, CheckCircle2, Clock, Loader2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -68,7 +69,7 @@ function ImagePreview({ url, label }: { url: string | null | undefined; label: s
 }
 
 export function GovernmentIdVerificationPanel() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const pollIntervalRef = useRef(0);
   const {
     data: submission,
@@ -87,6 +88,9 @@ export function GovernmentIdVerificationPanel() {
   const isPendingReview = status === 'pending';
   const isVerified = status === 'verified';
 
+  const govIdSchema = useMemo(() => buildGovernmentIdVerificationSchema(t), [t, i18n.language]);
+  const govIdResolver = useLocalizedYupResolver(govIdSchema);
+
   const {
     register,
     handleSubmit,
@@ -94,8 +98,9 @@ export function GovernmentIdVerificationPanel() {
     watch,
     reset,
     formState: { errors },
+    trigger,
   } = useForm<GovernmentIdVerificationSchema>({
-    resolver: yupResolver(governmentIdVerificationSchema) as never,
+    resolver: govIdResolver as never,
     defaultValues: {
       document_type: 'national_id',
       document_number: '',
@@ -106,6 +111,8 @@ export function GovernmentIdVerificationPanel() {
       expiry_date: '',
     },
   });
+
+  useRevalidateFormOnLanguageChange(trigger);
 
   const frontUrl = watch('front_image_url');
   const backUrl = watch('back_image_url');

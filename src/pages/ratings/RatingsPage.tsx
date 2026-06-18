@@ -2,13 +2,20 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useGetTalentProfileQuery, useListTalentRatingsQuery } from '@/api/endpoints';
+import { formatDate } from '@/lib/formatDate';
 import { Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 function StarsRow({ value }: { value: number }) {
+  const { t } = useTranslation();
+
   return (
-    <div className="flex gap-0.5" dir="ltr" aria-label={`${value} stars`}>
+    <div
+      className="flex gap-0.5"
+      dir="ltr"
+      aria-label={t('ratings.starsAria', { count: value })}
+    >
       {Array.from({ length: 5 }, (_, i) => (
         <Star
           key={i}
@@ -23,7 +30,7 @@ function StarsRow({ value }: { value: number }) {
 
 /** Deep-link wrapper — ratings summary also appears on Home. */
 export function RatingsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data: profile } = useGetTalentProfileQuery();
   const { data: ratingsPaged, isLoading } = useListTalentRatingsQuery(
     { slug: profile?.slug ?? '', page: 1, per_page: 20 },
@@ -72,7 +79,7 @@ export function RatingsPage() {
               <StarsRow value={Math.min(5, Math.max(0, Math.round(rating.stars)))} />
               {rating.created_at ? (
                 <span className="text-[12px] text-ink-40" dir="ltr">
-                  {new Date(rating.created_at).toLocaleDateString()}
+                  {formatDate(rating.created_at, i18n.language)}
                 </span>
               ) : null}
             </li>

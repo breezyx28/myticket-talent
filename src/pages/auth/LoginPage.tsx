@@ -2,37 +2,61 @@ import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/forms/Field';
 import { TextInput } from '@/components/forms/TextInput';
 import { useAuth } from '@/hooks/useAuth';
-import { loginSchema, type LoginSchema } from '@/schemas/auth';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { useLocalizedYupResolver } from '@/hooks/useLocalizedYupResolver';
+import { useRevalidateFormOnLanguageChange } from '@/hooks/useRevalidateFormOnLanguageChange';
+import { useRefreshGenericErrorOnLanguageChange } from '@/hooks/useRefreshGenericErrorOnLanguageChange';
+import { buildLoginSchema, buildOtpSchema, type LoginSchema, type OtpSchema } from '@/schemas/auth';
 import { ENV } from '@/config/env';
-import { useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 export function LoginPage() {
   const { user, signIn, signInWithOtp, signInWithOAuth } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from ?? '/';
   const [challengeToken, setChallengeToken] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const formErrorIsGenericRef = useRef(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const loginSchema = useMemo(() => buildLoginSchema(t), [t, i18n.language]);
+  const otpSchema = useMemo(() => buildOtpSchema(t), [t, i18n.language]);
+  const loginResolver = useLocalizedYupResolver(loginSchema);
+  const otpResolver = useLocalizedYupResolver(otpSchema);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     getValues,
+    trigger,
   } = useForm<LoginSchema>({
-    resolver: yupResolver(loginSchema),
+    resolver: loginResolver as never,
     defaultValues: { email: '', password: '' },
   });
 
-  const otpForm = useForm<{ otp: string }>({
+  const otpForm = useForm<OtpSchema>({
+    resolver: otpResolver as never,
     defaultValues: { otp: '' },
   });
+
+  useRevalidateFormOnLanguageChange(trigger);
+  useRevalidateFormOnLanguageChange(otpForm.trigger);
+  useRefreshGenericErrorOnLanguageChange(formError, setFormError, formErrorIsGenericRef, 'errors.validation');
+
+  function setClientFormError(message: string) {
+    formErrorIsGenericRef.current = true;
+    setFormError(message);
+  }
+
+  function setApiFormError(message: string) {
+    formErrorIsGenericRef.current = false;
+    setFormError(message);
+  }
 
   if (user && (user.role === 'talent' || user.role === 'guest')) {
     return <Navigate to={from} replace />;
@@ -40,6 +64,7 @@ export function LoginPage() {
 
   async function onSubmit(values: LoginSchema) {
     setFormError(null);
+    formErrorIsGenericRef.current = false;
     setSubmitting(true);
     try {
       const result = await signIn(values.email, values.password);
@@ -52,7 +77,11 @@ export function LoginPage() {
           navigate('/access-denied', { replace: true });
           return;
         }
-        setFormError(result.message ?? t('errors.validation'));
+        if (result.message) {
+          setApiFormError(result.message);
+        } else {
+          setClientFormError(t('errors.validation'));
+        }
         return;
       }
       navigate(result.redirectTo, { replace: true });
@@ -61,19 +90,19 @@ export function LoginPage() {
     }
   }
 
-  async function onOtpSubmit() {
-    const otp = otpForm.getValues('otp').trim();
-    if (!otp) {
-      otpForm.setError('otp', { message: t('errors.validation') });
-      return;
-    }
+  async function onOtpSubmit(values: OtpSchema) {
     setFormError(null);
+    formErrorIsGenericRef.current = false;
     setSubmitting(true);
     try {
       const { email, password } = getValues();
-      const result = await signInWithOtp({ email, password, otp });
+      const result = await signInWithOtp({ email, password, otp: values.otp });
       if (!result.ok) {
-        setFormError(result.message ?? t('errors.validation'));
+        if (result.message) {
+          setApiFormError(result.message);
+        } else {
+          setClientFormError(t('errors.validation'));
+        }
         return;
       }
       navigate(result.redirectTo, { replace: true });
@@ -84,17 +113,11 @@ export function LoginPage() {
 
   return (
     <div className="mx-auto w-full max-w-md rounded-2xl border border-ink-10 bg-white p-8 shadow-elevated">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-40">Talent Dashboard</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-40">{t('brand.dashboard')}</p>
       <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-ink">{t('auth.loginTitle')}</h1>
 
       {challengeToken ? (
-        <form
-          className="mt-8 space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void onOtpSubmit();
-          }}
-        >
+        <form className="mt-8 space-y-4" onSubmit={otpForm.handleSubmit(onOtpSubmit)}>
           <p className="rounded-xl bg-indigo/10 px-4 py-3 text-[13px] font-medium text-ink">
             {t('auth.twoFactorRequired')}
           </p>
@@ -104,6 +127,8 @@ export function LoginPage() {
               autoComplete="one-time-code"
               inputMode="numeric"
               autoFocus
+              hasError={Boolean(otpForm.formState.errors.otp)}
+              dir="ltr"
             />
           </Field>
           {formError ? <p className="text-[12px] font-medium text-coral">{formError}</p> : null}
@@ -118,6 +143,8 @@ export function LoginPage() {
             onClick={() => {
               setChallengeToken(null);
               setFormError(null);
+              formErrorIsGenericRef.current = false;
+              otpForm.reset({ otp: '' });
             }}
           >
             {t('common.back')}

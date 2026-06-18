@@ -1,11 +1,12 @@
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import type { SerializedError } from '@reduxjs/toolkit';
+import i18n from '@/i18n';
 
 export class TwoFactorRequiredError extends Error {
   readonly challengeToken: string;
 
-  constructor(challengeToken: string, message = 'Two-factor authentication required.') {
-    super(message);
+  constructor(challengeToken: string, message?: string) {
+    super(message ?? i18n.t('auth.twoFactorRequired'));
     this.name = 'TwoFactorRequiredError';
     this.challengeToken = challengeToken;
   }
@@ -49,7 +50,8 @@ function isSerializedError(value: unknown): value is SerializedError {
   );
 }
 
-export function toAuthApiError(value: unknown, fallback = 'Something went wrong. Please try again.'): AuthApiError {
+export function toAuthApiError(value: unknown, fallback?: string): AuthApiError {
+  const defaultFallback = fallback ?? i18n.t('errors.generic');
   if (value instanceof AuthApiError) return value;
 
   if (isFetchBaseQueryError(value)) {
@@ -67,32 +69,32 @@ export function toAuthApiError(value: unknown, fallback = 'Something went wrong.
       const message =
         normalizedMessage ??
         (err.status === 401
-          ? 'Invalid credentials. Please try again.'
+          ? i18n.t('errors.invalidCredentials')
           : err.status === 422
-            ? 'Please correct the highlighted fields.'
+            ? i18n.t('errors.validation')
             : err.status === 429
-              ? 'Too many attempts. Try again in a moment.'
-              : fallback);
+              ? i18n.t('errors.tooManyAttempts')
+              : defaultFallback);
       return new AuthApiError(message, err.status, data?.errors ?? {});
     }
     if (err.status === 'FETCH_ERROR') {
-      return new AuthApiError('Network error. Check your connection and try again.', err.status);
+      return new AuthApiError(i18n.t('errors.network'), err.status);
     }
     if (err.status === 'PARSING_ERROR') {
-      return new AuthApiError('Unexpected server response.', err.status);
+      return new AuthApiError(i18n.t('errors.unexpectedResponse'), err.status);
     }
     if (err.status === 'TIMEOUT_ERROR') {
-      return new AuthApiError('The server took too long to respond.', err.status);
+      return new AuthApiError(i18n.t('errors.serverTimeout'), err.status);
     }
-    return new AuthApiError(fallback, err.status);
+    return new AuthApiError(defaultFallback, err.status);
   }
 
   if (isSerializedError(value)) {
-    return new AuthApiError(value.message ?? fallback);
+    return new AuthApiError(value.message ?? defaultFallback);
   }
 
-  if (value instanceof Error) return new AuthApiError(value.message || fallback);
-  return new AuthApiError(fallback);
+  if (value instanceof Error) return new AuthApiError(value.message || defaultFallback);
+  return new AuthApiError(defaultFallback);
 }
 
 export function authErrorMessage(value: unknown, fallback?: string): string {

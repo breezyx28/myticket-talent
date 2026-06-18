@@ -1,13 +1,9 @@
 import { PageTransition } from '@/components/layout/PageTransition';
+import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 import { UserMenu } from '@/components/ui/UserMenu';
 import { NAV_MAIN, NAV_MOBILE_TABS } from '@/config/nav';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  useGetConversationsUnreadCountQuery,
-  useGetPreferencesQuery,
-  useUpdatePreferencesMutation,
-} from '@/api/endpoints';
-import type { AppLanguage } from '@/i18n';
+import { useGetConversationsUnreadCountQuery } from '@/api/endpoints';
 import { cn } from '@/lib/utils';
 import { Menu, Mic2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -16,36 +12,15 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 export function TalentShellLayout() {
   const { user, signOut } = useAuth();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const location = useLocation();
   const [open, setOpen] = useState(false);
-  const { data: preferences } = useGetPreferencesQuery();
-  const [updatePreferences] = useUpdatePreferencesMutation();
   const { data: unreadData } = useGetConversationsUnreadCountQuery();
   const unreadCount = unreadData?.unread_count ?? 0;
 
   useEffect(() => {
-    const next = preferences?.language;
-    if ((next === 'en' || next === 'ar') && i18n.language !== next) {
-      void i18n.changeLanguage(next);
-    }
-  }, [i18n, preferences?.language]);
-
-  useEffect(() => {
     setOpen(false);
   }, [location.pathname]);
-
-  async function toggleLanguage() {
-    const next: AppLanguage = i18n.language === 'ar' ? 'en' : 'ar';
-    await i18n.changeLanguage(next);
-    try {
-      await updatePreferences({ language: next }).unwrap();
-    } catch {
-      /* language still switched locally */
-    }
-  }
-
-  const displayLang = preferences?.language ?? (i18n.language === 'ar' ? 'ar' : 'en');
 
   return (
     <div className="min-h-dvh bg-surface-muted text-ink">
@@ -65,16 +40,11 @@ export function TalentShellLayout() {
                 <Mic2 size={16} strokeWidth={2} className="text-ink" />
               </span>
               <span className="hidden leading-tight sm:inline">
-                MyTicket <span className="text-coral">Talent</span>
+                {t('brand.product')} <span className="text-coral">{t('brand.talent')}</span>
               </span>
             </NavLink>
           </div>
-          <UserMenu
-            email={user?.email}
-            displayLang={displayLang}
-            onToggleLanguage={() => void toggleLanguage()}
-            onSignOut={() => void signOut()}
-          />
+          <UserMenu email={user?.email} onSignOut={() => void signOut()} />
         </div>
       </header>
 
@@ -86,7 +56,7 @@ export function TalentShellLayout() {
           )}
         >
           <div className="mb-4 flex items-center justify-between lg:hidden">
-            <p className="text-sm font-bold text-ink">{t('common.language')}</p>
+            <LanguageSwitcher variant="compact" persist />
             <button
               type="button"
               className="rounded-full p-2 hover:bg-ink-5"

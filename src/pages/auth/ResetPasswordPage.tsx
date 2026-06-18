@@ -2,31 +2,37 @@ import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/forms/Field';
 import { TextInput } from '@/components/forms/TextInput';
 import { useResetPasswordMutation } from '@/api/endpoints';
-import { resetPasswordSchema, type ResetPasswordSchema } from '@/schemas/auth';
+import { buildResetPasswordSchema, type ResetPasswordSchema } from '@/schemas/auth';
 import { readApiErrorMessage } from '@/lib/apiErrors';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
+import { useLocalizedYupResolver } from '@/hooks/useLocalizedYupResolver';
+import { useRevalidateFormOnLanguageChange } from '@/hooks/useRevalidateFormOnLanguageChange';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export function ResetPasswordPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tokenFromQuery = searchParams.get('token') ?? '';
   const [resetPassword, { isLoading }] = useResetPasswordMutation();
+  const resetSchema = useMemo(() => buildResetPasswordSchema(t), [t, i18n.language]);
+  const resetResolver = useLocalizedYupResolver(resetSchema);
 
   const {
     register,
     handleSubmit,
     setValue,
     formState: { errors },
+    trigger,
   } = useForm<ResetPasswordSchema>({
-    resolver: yupResolver(resetPasswordSchema),
+    resolver: resetResolver as never,
     defaultValues: { token: tokenFromQuery, password: '', password_confirmation: '' },
   });
+
+  useRevalidateFormOnLanguageChange(trigger);
 
   useEffect(() => {
     if (tokenFromQuery) setValue('token', tokenFromQuery);
@@ -51,7 +57,7 @@ export function ResetPasswordPage() {
 
       <form className="mt-8 space-y-4" onSubmit={handleSubmit(onSubmit)}>
         {!tokenFromQuery ? (
-          <Field label="Reset token" error={errors.token?.message}>
+          <Field label={t('auth.resetToken')} error={errors.token?.message}>
             <TextInput
               {...register('token')}
               hasError={Boolean(errors.token)}
@@ -69,7 +75,7 @@ export function ResetPasswordPage() {
             dir="ltr"
           />
         </Field>
-        <Field label="Confirm password" error={errors.password_confirmation?.message}>
+        <Field label={t('auth.passwordConfirmation')} error={errors.password_confirmation?.message}>
           <TextInput
             {...register('password_confirmation')}
             type="password"

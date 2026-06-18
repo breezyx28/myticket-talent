@@ -101,6 +101,9 @@
     color: var(--color-ink);
     -webkit-font-smoothing: antialiased;
   }
+  html[lang='ar'] body {
+    font-family: 'Segoe UI', 'Tahoma', 'Arial', var(--font-sans), system-ui, sans-serif;
+  }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }

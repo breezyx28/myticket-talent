@@ -6,9 +6,9 @@ export function getOrganizerParticipant(conversation: Conversation) {
   return conversation.participants?.find((p) => p.role === 'organizer');
 }
 
-export function getOrganizerDisplayName(conversation: Conversation): string {
+export function getOrganizerDisplayName(conversation: Conversation, fallback: string): string {
   const organizer = getOrganizerParticipant(conversation);
-  return organizer?.user?.full_name ?? 'Organizer';
+  return organizer?.user?.full_name ?? fallback;
 }
 
 export function getEngagementForConversation(

@@ -10,7 +10,19 @@
     "back": "رجوع",
     "continue": "متابعة",
     "signOut": "تسجيل الخروج",
-    "language": "اللغة"
+    "language": "اللغة",
+    "empty": "—",
+    "notAvailable": "غير متاح"
+  },
+  "locale": {
+    "en": "English",
+    "ar": "العربية"
+  },
+  "brand": {
+    "product": "MyTicket",
+    "talent": "موهبة",
+    "dashboard": "لوحة المواهب",
+    "documentTitle": "MyTicket — المواهب"
   },
   "nav": {
     "home": "الرئيسية",
@@ -23,7 +35,8 @@
   "shell": {
     "openMenu": "فتح القائمة",
     "closeMenu": "إغلاق القائمة",
-    "talent": "موهبة"
+    "talent": "موهبة",
+    "userMenu": "قائمة الحساب"
   },
   "home": {
     "welcome": "مساحة عملك الفنية",
@@ -51,9 +64,21 @@
     "sendResetLink": "إرسال رابط إعادة التعيين",
     "resetPasswordTitle": "اختر كلمة مرور جديدة",
     "resetPassword": "إعادة تعيين كلمة المرور",
+    "resetToken": "رمز إعادة التعيين",
+    "passwordConfirmation": "تأكيد كلمة المرور",
     "accessDeniedTitle": "الوصول مرفوض",
     "accessDeniedBody": "هذه اللوحة مخصصة لمقدّمي طلبات المواهب والفنانين المعتمدين فقط.",
-    "backToMain": "العودة إلى MyTicket"
+    "backToMain": "العودة إلى MyTicket",
+    "oauthFailed": "فشل تسجيل الدخول",
+    "oauthFinishing": "جارٍ إكمال تسجيل الدخول عبر {{provider}}…",
+    "oauthVerifying": "جارٍ التحقق من التفويض مع المزود.",
+    "oauthTryAgain": "حاول مرة أخرى أو استخدم البريد وكلمة المرور.",
+    "oauthMissingCode": "رمز التفويض مفقود من المزود. حاول تسجيل الدخول مرة أخرى.",
+    "providerRedirectMissing": "لم يُرجع المزود رابط إعادة التوجيه.",
+    "oauthStateMismatch": "عدم تطابق حالة OAuth. حاول تسجيل الدخول مرة أخرى.",
+    "talentOnly": "هذه اللوحة مخصصة لحسابات المواهب فقط.",
+    "signInIncomplete": "تسجيل الدخول غير مكتمل؛ مطلوب التحقق.",
+    "oauthProvider": "مزود OAuth"
   },
   "application": {
     "step_identity": "الهوية",
@@ -65,6 +90,8 @@
     "status_rejected": "لم يتم قبول طلبك.",
     "status_approved": "تهانينا — تمت الموافقة!",
     "status_provisioning": "جارٍ إعداد ملفك الشخصي…",
+    "status_draft": "مسودة",
+    "status_not_started": "لم يبدأ",
     "editApplication": "تعديل الطلب",
     "resubmit": "إعادة الإرسال",
     "withdraw": "سحب الطلب",
@@ -121,6 +148,7 @@
     "locationLocked": "تم تعيين المنطقة والمدينة أثناء التسجيل. تواصل مع الدعم لتغييرهما.",
     "headshot": "الصورة الشخصية",
     "headshotHint": "ارفع صورة واضحة لبطاقتك في السوق.",
+    "noPhoto": "لا توجد صورة شخصية",
     "uploadHeadshot": "رفع صورة",
     "imageUpdateFailed": "تعذّر تحديث الصورة. حاول مرة أخرى.",
     "imageInvalidType": "استخدم صورة بصيغة JPEG أو PNG أو GIF أو WebP.",
@@ -177,7 +205,9 @@
     "available": "متاح",
     "reserved": "محجوز",
     "availableHint": "يمكن للمنظمين اكتشافك والتواصل معك في السوق.",
-    "reservedHint": "تظهر كمحجوز. عد إلى متاح عندما تكون مستعداً لطلبات جديدة."
+    "reservedHint": "تظهر كمحجوز. عد إلى متاح عندما تكون مستعداً لطلبات جديدة.",
+    "setAvailable": "تعيين التوفر إلى متاح",
+    "setReserved": "تعيين التوفر إلى محجوز"
   },
   "engagements": {
     "title": "الطلبات",
@@ -204,7 +234,8 @@
     "title": "التقييمات",
     "empty": "قدّم عروضاً في الفعاليات لتحصل على تقييمات من المنظمين.",
     "average": "متوسط التقييم",
-    "count": "{{count}} تقييم"
+    "count": "{{count}} تقييم",
+    "starsAria": "{{count}} نجوم"
   },
   "governmentId": {
     "title": "التحقق من الهوية الحكومية",
@@ -242,6 +273,41 @@
     "forbidden": "ليس لديك صلاحية للقيام بذلك.",
     "notFound": "تعذّر العثور على هذا المورد.",
     "validation": "يرجى تصحيح الحقول المميزة.",
-    "network": "خطأ في الشبكة. تحقق من اتصالك وحاول مرة أخرى."
+    "network": "خطأ في الشبكة. تحقق من اتصالك وحاول مرة أخرى.",
+    "uploadFailed": "فشل الرفع.",
+    "uploadNoUrl": "استجابة الرفع لم تتضمن رابطاً.",
+    "tooManyAttempts": "محاولات كثيرة جداً. حاول بعد قليل.",
+    "unexpectedResponse": "استجابة غير متوقعة من الخادم.",
+    "serverTimeout": "استغرق الخادم وقتاً طويلاً للرد.",
+    "invalidCredentials": "بيانات الدخول غير صحيحة. حاول مرة أخرى.",
+    "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+  },
+  "validation": {
+    "emailRequired": "البريد الإلكتروني مطلوب.",
+    "emailInvalid": "أدخل بريداً إلكترونياً صالحاً.",
+    "passwordRequired": "كلمة المرور مطلوبة.",
+    "otpRequired": "رمز التحقق مطلوب.",
+    "passwordMin": "يجب أن تكون كلمة المرور {{min}} أحرف على الأقل.",
+    "passwordMax": "كلمة المرور طويلة جداً.",
+    "passwordConfirmRequired": "أكد كلمة المرور الجديدة.",
+    "passwordMismatch": "كلمتا المرور غير متطابقتين.",
+    "resetTokenRequired": "رمز إعادة التعيين مطلوب.",
+    "stageNameRequired": "اسم الفنان مطلوب.",
+    "stageNameMax": "الحد الأقصى {{max}} حرفاً.",
+    "contactEmailRequired": "بريد التواصل مطلوب.",
+    "phoneInvalid": "أدخل رقماً هاتفياً صالحاً.",
+    "bioMin": "يجب أن تكون السيرة {{min}} أحرف على الأقل.",
+    "disclaimerRequired": "يجب قبول إقرار الجودة.",
+    "urlHttps": "يجب أن يكون رابط https صالحاً.",
+    "urlInvalid": "يجب أن يكون رابطاً صالحاً.",
+    "mediaKindRequired": "نوع الوسائط مطلوب.",
+    "urlRequired": "الرابط مطلوب.",
+    "messageRequired": "الرسالة مطلوبة.",
+    "messageTooLong": "الرسالة طويلة جداً.",
+    "reasonTooLong": "السبب طويل جداً.",
+    "attachmentUrlInvalid": "يجب أن يكون المرفق رابطاً صالحاً.",
+    "imageRequired": "هذه الصورة مطلوبة.",
+    "documentTypeRequired": "نوع الوثيقة مطلوب.",
+    "statusRequired": "الحالة مطلوبة."
   }
 }

@@ -45,8 +45,11 @@ export function ProfileHeader({
           className="h-20 w-20 shrink-0 rounded-2xl object-cover ring-2 ring-ink-10"
         />
       ) : (
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-ink-5 text-[24px] font-bold text-ink-40">
-          {profile.stage_name?.charAt(0) ?? '?'}
+        <div
+          className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-ink-5 text-[24px] font-bold text-ink-40"
+          aria-label={t('profile.noPhoto')}
+        >
+          {profile.stage_name?.charAt(0) ?? t('common.empty')}
         </div>
       )}
       <div className="min-w-0 flex-1">

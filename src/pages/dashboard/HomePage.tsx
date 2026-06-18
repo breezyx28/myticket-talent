@@ -16,13 +16,14 @@ import {
   getEngagementStatusForConversation,
   getOrganizerDisplayName,
 } from '@/lib/conversationEngagement';
+import { formatDateTime } from '@/lib/formatDate';
 import { CalendarCheck, MessageSquare, Star, Ticket } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 export function HomePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data: profile } = useGetTalentProfileQuery();
   const { data: availability } = useGetTalentAvailabilityQuery();
   const { data: engagements } = useListEngagementsQuery({ page: 1, per_page: 50 });
@@ -87,7 +88,7 @@ export function HomePage() {
       <div className="grid gap-4 sm:grid-cols-2">
         <StatBubble
           label={t('ratings.average')}
-          value={profile?.rating_average ?? '—'}
+          value={profile?.rating_average ?? t('common.empty')}
           icon={Star}
           className="sm:col-span-1"
           footer={
@@ -156,11 +157,11 @@ export function HomePage() {
                     <div className="min-w-0">
                       <p className="font-semibold text-ink">{c.subject}</p>
                       <p className="mt-0.5 text-[12px] text-ink-40">
-                        {getOrganizerDisplayName(c)} ·{' '}
+                        {getOrganizerDisplayName(c, t('engagements.organizer'))} ·{' '}
                         {c.last_message_at ? (
-                          <span dir="ltr">{new Date(c.last_message_at).toLocaleString()}</span>
+                          <span dir="ltr">{formatDateTime(c.last_message_at, i18n.language)}</span>
                         ) : (
-                          '—'
+                          t('common.empty')
                         )}
                       </p>
                     </div>

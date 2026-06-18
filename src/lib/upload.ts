@@ -2,7 +2,19 @@ import { API_BASE_URL } from '@/api/baseApi';
 import { getToken } from '@/api/authToken';
 import type { ProfileImageUploadResult } from '@/api/types/user';
 import { readApiErrorMessage } from '@/lib/apiErrors';
+import { getAcceptLanguageHeader } from '@/lib/language-core';
 import { unwrapData } from '@/api/types/common';
+import i18n from '@/i18n';
+
+function uploadHeaders(): HeadersInit {
+  const headers: HeadersInit = {
+    Accept: 'application/json',
+    'Accept-Language': getAcceptLanguageHeader(i18n.language),
+  };
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
 
 export interface UploadResult {
   url: string;
@@ -46,18 +58,14 @@ export async function uploadProfileImage(file: File): Promise<ProfileImageUpload
   const form = new FormData();
   form.append('image', file);
 
-  const headers: HeadersInit = { Accept: 'application/json' };
-  const token = getToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
-
   const res = await fetch(`${API_BASE_URL}/me/profile-image`, {
     method: 'POST',
     body: form,
-    headers,
+    headers: uploadHeaders(),
   });
 
   if (!res.ok) {
-    let message = 'Upload failed.';
+    let message = i18n.t('errors.uploadFailed');
     try {
       const json = (await res.json()) as unknown;
       message = readApiErrorMessage({ data: json }, message);
@@ -71,7 +79,7 @@ export async function uploadProfileImage(file: File): Promise<ProfileImageUpload
   const data = unwrapData(json) ?? (json as ProfileImageUploadResult);
 
   if (!data?.profile_image_url) {
-    throw new Error('Upload response did not include a profile image URL.');
+    throw new Error(i18n.t('errors.uploadNoUrl'));
   }
 
   return data;
@@ -89,18 +97,14 @@ export async function uploadToCdn(
   form.append('file', file);
   form.append('context', context);
 
-  const headers: HeadersInit = { Accept: 'application/json' };
-  const token = getToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
-
   const res = await fetch(`${API_BASE_URL}/uploads`, {
     method: 'POST',
     body: form,
-    headers,
+    headers: uploadHeaders(),
   });
 
   if (!res.ok) {
-    let message = 'Upload failed.';
+    let message = i18n.t('errors.uploadFailed');
     try {
       const json = (await res.json()) as unknown;
       message = readApiErrorMessage({ data: json }, message);
@@ -114,7 +118,7 @@ export async function uploadToCdn(
   const data = unwrapData(json) ?? (json as UploadResponseBody);
 
   if (!data?.url) {
-    throw new Error('Upload response did not include a URL.');
+    throw new Error(i18n.t('errors.uploadNoUrl'));
   }
 
   return {

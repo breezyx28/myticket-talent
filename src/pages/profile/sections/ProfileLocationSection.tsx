@@ -14,11 +14,13 @@ import {
 import { readApiErrorMessage } from '@/lib/apiErrors';
 import { canEditTalentApplication } from '@/lib/roleApplicationEdit';
 import { getTalentCityId, getTalentRegionId } from '@/lib/talentApplicationFields';
+import { getSaudiCityLabel, getSaudiRegionLabel } from '@/lib/referenceLabels';
 import type { RoleApplicationDetail } from '@/api/types/roleApplication';
 import type { TalentProfileMe } from '@/api/types/user';
-import { talentApplicationPatchSchema, type TalentApplicationPatchSchema } from '@/schemas';
+import { buildTalentApplicationPatchSchema, type TalentApplicationPatchSchema } from '@/schemas';
 import { ENV } from '@/config/env';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { useLocalizedYupResolver } from '@/hooks/useLocalizedYupResolver';
+import { useRevalidateFormOnLanguageChange } from '@/hooks/useRevalidateFormOnLanguageChange';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -31,7 +33,7 @@ export function ProfileLocationSection({
   profile: TalentProfileMe;
   applicationDetail?: RoleApplicationDetail | null;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data: availability, isLoading: loadingAvailability } = useGetTalentAvailabilityQuery();
   const [setAvailability, { isLoading: savingAvailability }] = useSetTalentAvailabilityMutation();
   const { data: regionsData } = useGetSaudiRegionsQuery();
@@ -42,6 +44,9 @@ export function ProfileLocationSection({
   const application = applicationDetail?.talent_application;
   const canEdit = canEditTalentApplication(applicationDetail?.status);
 
+  const patchSchema = useMemo(() => buildTalentApplicationPatchSchema(t), [t, i18n.language]);
+  const patchResolver = useLocalizedYupResolver(patchSchema);
+
   const {
     register,
     handleSubmit,
@@ -49,8 +54,9 @@ export function ProfileLocationSection({
     watch,
     setValue,
     formState: { errors },
+    trigger,
   } = useForm<TalentApplicationPatchSchema>({
-    resolver: yupResolver(talentApplicationPatchSchema) as never,
+    resolver: patchResolver as never,
     defaultValues: {
       saudi_region_id: undefined,
       city: undefined,
@@ -58,6 +64,8 @@ export function ProfileLocationSection({
       location_public: false,
     },
   });
+
+  useRevalidateFormOnLanguageChange(trigger);
 
   const selectedRegionId = watch('saudi_region_id');
 
@@ -75,8 +83,12 @@ export function ProfileLocationSection({
     if (!regionId) return null;
     const region = regions.find((r) => r.id === regionId);
     const city = region?.cities.find((c) => c.id === profile.city_id);
-    return [region?.name, city?.name].filter(Boolean).join(', ');
-  }, [profile, regions]);
+    const parts = [
+      region ? getSaudiRegionLabel(region, i18n.language) : null,
+      city ? getSaudiCityLabel(city, i18n.language) : null,
+    ].filter(Boolean);
+    return parts.length > 0 ? parts.join(', ') : null;
+  }, [profile, regions, i18n.language]);
 
   const availabilityStatus: TalentAvailability =
     availability?.status ?? profile.availability_status ?? 'available';

@@ -28,7 +28,9 @@ import {
 import { ENGAGEMENT_STATUS_FILTERS } from '@/lib/engagementsUi';
 import { leaveConversation, subscribeConversation } from '@/lib/realtime/channels';
 import type { MessagePayload } from '@/lib/realtime/types';
-import { declineEngagementSchema, engagementMessageSchema } from '@/schemas/engagement';
+import { buildEngagementMessageSchema, buildDeclineEngagementSchema } from '@/schemas/engagement';
+import { isValidationError, useLocalizedActionError } from '@/hooks/useLocalizedActionError';
+import { formatDateTime } from '@/lib/formatDate';
 import { cn } from '@/lib/utils';
 import type { EngagementStatus } from '@/types/domain';
 import { useAppDispatch } from '@/store/hooks';
@@ -42,7 +44,7 @@ const LIST_QUERY: ListConversationsQuery = { page: 1, per_page: 50 };
 const ENGAGEMENTS_QUERY = { page: 1, per_page: 50 };
 
 export function EngagementsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const focusId = searchParams.get('focus');
@@ -62,7 +64,7 @@ export function EngagementsPage() {
   const effectiveSelectedId = focusId ?? selectedId;
   const [message, setMessage] = useState('');
   const [declineReason, setDeclineReason] = useState('');
-  const [actionError, setActionError] = useState<string | null>(null);
+  const { error: actionError, clearError, setApiError, setValidationError } = useLocalizedActionError();
 
   const selected = useMemo(
     () => list.find((c) => String(c.id) === String(effectiveSelectedId)) ?? null,
@@ -80,18 +82,18 @@ export function EngagementsPage() {
   const [completeEngagement, { isLoading: completing }] = useCompleteEngagementMutation();
 
   async function onAccept(engagementId: string | number) {
-    setActionError(null);
+    clearError();
     try {
       await acceptEngagement({ id: engagementId }).unwrap();
     } catch (err) {
-      setActionError(readApiErrorMessage(err, t('common.error')));
+      setApiError(readApiErrorMessage(err, t('common.error')));
     }
   }
 
   async function onDecline(engagementId: string | number) {
-    setActionError(null);
+    clearError();
     try {
-      const validated = await declineEngagementSchema.validate({
+      const validated = await buildDeclineEngagementSchema(t).validate({
         reason: declineReason.trim() || undefined,
       });
       await declineEngagement({
@@ -100,14 +102,27 @@ export function EngagementsPage() {
       }).unwrap();
       setDeclineReason('');
     } catch (err) {
-      setActionError(readApiErrorMessage(err, t('common.error')));
+      if (isValidationError(err)) {
+        setValidationError(err.message, async () => {
+          try {
+            await buildDeclineEngagementSchema(t).validate({
+              reason: declineReason.trim() || undefined,
+            });
+            return null;
+          } catch (e) {
+            return isValidationError(e) ? e.message : null;
+          }
+        });
+        return;
+      }
+      setApiError(readApiErrorMessage(err, t('common.error')));
     }
   }
 
   async function onSendMessage(conversationId: string | number) {
-    setActionError(null);
+    clearError();
     try {
-      const validated = await engagementMessageSchema.validate({ body: message });
+      const validated = await buildEngagementMessageSchema(t).validate({ body: message });
       await postMessage({
         id: conversationId,
         body: { body: validated.body, attachment_url: validated.attachment_url ?? undefined },
@@ -115,16 +130,27 @@ export function EngagementsPage() {
       }).unwrap();
       setMessage('');
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : readApiErrorMessage(err, t('common.error')));
+      if (isValidationError(err)) {
+        setValidationError(err.message, async () => {
+          try {
+            await buildEngagementMessageSchema(t).validate({ body: message });
+            return null;
+          } catch (e) {
+            return isValidationError(e) ? e.message : null;
+          }
+        });
+        return;
+      }
+      setApiError(err instanceof Error ? err.message : readApiErrorMessage(err, t('common.error')));
     }
   }
 
   async function onComplete(engagementId: string | number) {
-    setActionError(null);
+    clearError();
     try {
       await completeEngagement({ id: engagementId }).unwrap();
     } catch (err) {
-      setActionError(readApiErrorMessage(err, t('common.error')));
+      setApiError(readApiErrorMessage(err, t('common.error')));
     }
   }
 
@@ -174,7 +200,7 @@ export function EngagementsPage() {
             <ul className="space-y-1">
               {list.map((c) => {
                 const status = getEngagementStatusForConversation(c, engagements);
-                const organizerName = getOrganizerDisplayName(c);
+                const organizerName = getOrganizerDisplayName(c, t('engagements.organizer'));
                 const preview = c.metadata?.brief ?? c.subject;
                 return (
                   <li key={c.id}>
@@ -199,7 +225,9 @@ export function EngagementsPage() {
                         />
                       ) : null}
                       <div className="flex items-start justify-between gap-2">
-                        <p className="font-bold text-ink">{organizerName !== 'Organizer' ? organizerName : c.subject}</p>
+                        <p className="font-bold text-ink">
+                          {organizerName !== t('engagements.organizer') ? organizerName : c.subject}
+                        </p>
                         <div className="flex shrink-0 items-center gap-1.5">
                           {c.unread ? (
                             <span className="h-2 w-2 rounded-full bg-coral" aria-label={t('engagements.unread')} />
@@ -215,7 +243,7 @@ export function EngagementsPage() {
                       <p className="mt-1 line-clamp-2 text-[12px] text-ink-60">{preview}</p>
                       {c.last_message_at ? (
                         <p className="mt-2 text-[11px] text-ink-40" dir="ltr">
-                          {new Date(c.last_message_at).toLocaleString()}
+                          {formatDateTime(c.last_message_at, i18n.language)}
                         </p>
                       ) : null}
                     </button>
@@ -305,7 +333,7 @@ export function ConversationThread({
   posting: boolean;
   completing: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useAppDispatch();
   const markedReadRef = useRef(false);
 
@@ -344,22 +372,25 @@ export function ConversationThread({
     return () => leaveConversation();
   }, [conversationId, dispatch]);
 
-  const organizerName = conversation ? getOrganizerDisplayName(conversation) : 'Organizer';
+  const organizerName = conversation
+    ? getOrganizerDisplayName(conversation, t('engagements.organizer'))
+    : t('engagements.organizer');
   const brief = conversation?.metadata?.brief ?? engagement?.preview;
   const engagementStatus = engagement?.status;
   const canCompose = conversation?.status === 'open';
+  const emptyLabel = t('common.empty');
 
   return (
     <>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-ink">{conversation?.subject ?? '—'}</h2>
+          <h2 className="text-xl font-extrabold text-ink">{conversation?.subject ?? emptyLabel}</h2>
           <p className="mt-1 text-[13px] text-ink-40">
             {organizerName} ·{' '}
             <span dir="ltr">
               {conversation?.created_at
-                ? new Date(conversation.created_at).toLocaleString()
-                : '—'}
+                ? formatDateTime(conversation.created_at, i18n.language)
+                : emptyLabel}
             </span>
           </p>
         </div>
@@ -385,7 +416,7 @@ export function ConversationThread({
             </li>
           ) : messages.length === 0 ? (
             <li className="rounded-xl border border-dashed border-ink-20 bg-white px-3 py-6 text-center text-[12px] text-ink-40">
-              —
+              {emptyLabel}
             </li>
           ) : (
             messages.map((msg) => (
@@ -419,7 +450,7 @@ export function ConversationThread({
                   )}
                   dir="ltr"
                 >
-                  {new Date(msg.created_at).toLocaleString()}
+                  {formatDateTime(msg.created_at, i18n.language)}
                 </p>
               </li>
             ))

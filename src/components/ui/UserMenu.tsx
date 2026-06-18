@@ -1,18 +1,14 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 import { cn } from '@/lib/utils';
-import type { AppLanguage } from '@/i18n';
-import { ChevronDown, Globe, LogOut, UserRound } from 'lucide-react';
+import { ChevronDown, LogOut, UserRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export function UserMenu({
   email,
-  displayLang,
-  onToggleLanguage,
   onSignOut,
 }: {
   email?: string | null;
-  displayLang: AppLanguage;
-  onToggleLanguage: () => void;
   onSignOut: () => void;
 }) {
   const { t } = useTranslation();
@@ -22,6 +18,7 @@ export function UserMenu({
       <DropdownMenu.Trigger asChild>
         <button
           type="button"
+          aria-label={t('shell.userMenu')}
           className={cn(
             'inline-flex h-10 max-w-[240px] items-center gap-2 rounded-full border border-ink-10 bg-white px-3 text-[13px] font-semibold text-ink',
             'transition-colors hover:bg-ink-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2',
@@ -46,16 +43,9 @@ export function UserMenu({
               <p className="text-[10px] font-bold uppercase tracking-wide text-ink-40">{t('shell.talent')}</p>
             </div>
           ) : null}
-          <DropdownMenu.Item
-            className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-medium text-ink outline-none hover:bg-ink-5 focus:bg-ink-5"
-            onSelect={(e) => {
-              e.preventDefault();
-              onToggleLanguage();
-            }}
-          >
-            <Globe size={16} className="text-ink-60" />
-            {t('common.language')}: {displayLang === 'ar' ? 'العربية' : 'EN'}
-          </DropdownMenu.Item>
+          <div className="px-2 py-2">
+            <LanguageSwitcher variant="compact" persist className="w-full justify-center" />
+          </div>
           <DropdownMenu.Separator className="my-1 h-px bg-ink-10" />
           <DropdownMenu.Item
             className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-medium text-coral outline-none hover:bg-coral/5 focus:bg-coral/5"

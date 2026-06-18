@@ -3,8 +3,11 @@ import { Field } from '@/components/forms/Field';
 import { Select } from '@/components/forms/Select';
 import { useGetPreferencesQuery, useUpdatePreferencesMutation } from '@/api/endpoints';
 import { readApiErrorMessage } from '@/lib/apiErrors';
+import { applyAppLanguage } from '@/lib/language';
+import type { AppLanguage } from '@/i18n';
 import { updatePreferencesSchema, type UpdatePreferencesSchema } from '@/schemas/profile';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { useLocalizedYupResolver } from '@/hooks/useLocalizedYupResolver';
+import { useRevalidateFormOnLanguageChange } from '@/hooks/useRevalidateFormOnLanguageChange';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -14,14 +17,18 @@ export function ProfileSettingsSection() {
   const { t } = useTranslation();
   const { data: preferences } = useGetPreferencesQuery();
   const [updatePreferences, { isLoading }] = useUpdatePreferencesMutation();
+  const preferencesResolver = useLocalizedYupResolver(updatePreferencesSchema);
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
+    trigger,
   } = useForm<UpdatePreferencesSchema>({
-    resolver: yupResolver(updatePreferencesSchema) as never,
+    resolver: preferencesResolver as never,
     defaultValues: {
       language: 'en',
       theme: 'system',
@@ -31,6 +38,8 @@ export function ProfileSettingsSection() {
       marketing_emails: false,
     },
   });
+
+  useRevalidateFormOnLanguageChange(trigger);
 
   useEffect(() => {
     if (!preferences) return;
@@ -66,9 +75,17 @@ export function ProfileSettingsSection() {
       <p className="text-[13px] text-ink-60">{t('profile.settingsHint')}</p>
 
       <Field label={t('profile.language')} error={errors.language?.message}>
-        <Select {...register('language')}>
-          <option value="en">English</option>
-          <option value="ar">العربية</option>
+        <Select
+          {...register('language')}
+          value={watch('language') ?? 'en'}
+          onChange={(e) => {
+            const next = e.target.value as AppLanguage;
+            setValue('language', next);
+            void applyAppLanguage(next);
+          }}
+        >
+          <option value="en">{t('locale.en')}</option>
+          <option value="ar">{t('locale.ar')}</option>
         </Select>
       </Field>
 

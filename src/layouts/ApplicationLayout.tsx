@@ -1,4 +1,5 @@
 import { PageTransition } from '@/components/layout/PageTransition';
+import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 import { Progress } from '@/components/ui/Progress';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
@@ -29,12 +30,17 @@ export function ApplicationLayout() {
     <div className="min-h-dvh bg-surface-muted">
       <header className="border-b border-ink-10 bg-white/95 backdrop-blur-md">
         <div className="mx-auto max-w-[960px] px-6 py-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-40">
-            MyTicket Talent
-          </p>
-          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink">
-            {t(STEPS[activeStep])}
-          </h1>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-40">
+                {t('brand.product')} {t('brand.talent')}
+              </p>
+              <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink">
+                {t(STEPS[activeStep])}
+              </h1>
+            </div>
+            <LanguageSwitcher variant="compact" persist />
+          </div>
           <div className="mt-4 flex items-center gap-3">
             <Progress value={progressValue} className="flex-1" />
             <span className="shrink-0 text-[12px] font-medium text-ink-40">

@@ -34,6 +34,8 @@ export function AvailabilityToggle({
       <button
         type="button"
         disabled={disabled}
+        aria-pressed={isAvailable}
+        aria-label={t('availability.setAvailable')}
         onClick={() => onChange?.('available')}
         className={cn(
           'rounded-full px-4 py-2 text-[12px] font-semibold transition-colors',
@@ -45,6 +47,8 @@ export function AvailabilityToggle({
       <button
         type="button"
         disabled={disabled}
+        aria-pressed={!isAvailable}
+        aria-label={t('availability.setReserved')}
         onClick={() => onChange?.('reserved')}
         className={cn(
           'rounded-full px-4 py-2 text-[12px] font-semibold transition-colors',

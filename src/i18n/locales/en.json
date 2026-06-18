@@ -10,7 +10,19 @@
     "back": "Back",
     "continue": "Continue",
     "signOut": "Sign out",
-    "language": "Language"
+    "language": "Language",
+    "empty": "—",
+    "notAvailable": "Not available"
+  },
+  "locale": {
+    "en": "English",
+    "ar": "العربية"
+  },
+  "brand": {
+    "product": "MyTicket",
+    "talent": "Talent",
+    "dashboard": "Talent Dashboard",
+    "documentTitle": "MyTicket — Talent"
   },
   "nav": {
     "home": "Home",
@@ -23,7 +35,8 @@
   "shell": {
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "talent": "Talent"
+    "talent": "Talent",
+    "userMenu": "Account menu"
   },
   "home": {
     "welcome": "Your performance workspace",
@@ -51,9 +64,21 @@
     "sendResetLink": "Send reset link",
     "resetPasswordTitle": "Choose a new password",
     "resetPassword": "Reset password",
+    "resetToken": "Reset token",
+    "passwordConfirmation": "Confirm password",
     "accessDeniedTitle": "Access denied",
     "accessDeniedBody": "This dashboard is for talent applicants and approved performers only.",
-    "backToMain": "Back to MyTicket"
+    "backToMain": "Back to MyTicket",
+    "oauthFailed": "Sign-in failed",
+    "oauthFinishing": "Finishing {{provider}} sign-in…",
+    "oauthVerifying": "Verifying your authorization with the provider.",
+    "oauthTryAgain": "Please try again or use email and password.",
+    "oauthMissingCode": "Missing authorization code from the provider. Please try signing in again.",
+    "providerRedirectMissing": "Provider did not return a redirect URL.",
+    "oauthStateMismatch": "OAuth state mismatch. Try signing in again.",
+    "talentOnly": "This dashboard is for talent accounts only.",
+    "signInIncomplete": "Sign-in is incomplete; verification required.",
+    "oauthProvider": "OAuth provider"
   },
   "application": {
     "step_identity": "Identity",
@@ -65,6 +90,8 @@
     "status_rejected": "Your application was not approved.",
     "status_approved": "Congratulations — you're approved!",
     "status_provisioning": "Your profile is being set up…",
+    "status_draft": "Draft",
+    "status_not_started": "Not started",
     "editApplication": "Edit application",
     "resubmit": "Resubmit",
     "withdraw": "Withdraw application",
@@ -121,6 +148,7 @@
     "locationLocked": "Region and city were set during onboarding. Contact support if you need to change them.",
     "headshot": "Profile photo",
     "headshotHint": "Upload a clear headshot for your public marketplace card.",
+    "noPhoto": "No profile photo",
     "uploadHeadshot": "Upload photo",
     "imageUpdateFailed": "Could not update profile photo. Please try again.",
     "imageInvalidType": "Use a JPEG, PNG, GIF, or WebP image.",
@@ -177,7 +205,9 @@
     "available": "Available",
     "reserved": "Reserved",
     "availableHint": "Organizers can discover and contact you in the marketplace.",
-    "reservedHint": "You appear as booked. Switch back when you're open to new requests."
+    "reservedHint": "You appear as booked. Switch back when you're open to new requests.",
+    "setAvailable": "Set availability to available",
+    "setReserved": "Set availability to reserved"
   },
   "engagements": {
     "title": "Engagements",
@@ -204,7 +234,8 @@
     "title": "Ratings",
     "empty": "Perform at events to receive ratings from organizers.",
     "average": "Average rating",
-    "count": "{{count}} ratings"
+    "count": "{{count}} ratings",
+    "starsAria": "{{count}} stars"
   },
   "governmentId": {
     "title": "Government ID verification",
@@ -242,6 +273,41 @@
     "forbidden": "You don't have permission to do that.",
     "notFound": "We couldn't find that resource.",
     "validation": "Please correct the highlighted fields.",
-    "network": "Network error. Check your connection and try again."
+    "network": "Network error. Check your connection and try again.",
+    "uploadFailed": "Upload failed.",
+    "uploadNoUrl": "Upload response did not include a URL.",
+    "tooManyAttempts": "Too many attempts. Try again in a moment.",
+    "unexpectedResponse": "Unexpected server response.",
+    "serverTimeout": "The server took too long to respond.",
+    "invalidCredentials": "Invalid credentials. Please try again.",
+    "generic": "Something went wrong. Please try again."
+  },
+  "validation": {
+    "emailRequired": "Email is required.",
+    "emailInvalid": "Enter a valid email.",
+    "passwordRequired": "Password is required.",
+    "otpRequired": "Verification code is required.",
+    "passwordMin": "Password must be at least {{min}} characters.",
+    "passwordMax": "Password is too long.",
+    "passwordConfirmRequired": "Confirm your new password.",
+    "passwordMismatch": "Passwords must match.",
+    "resetTokenRequired": "Reset token is required.",
+    "stageNameRequired": "Stage name is required.",
+    "stageNameMax": "Maximum {{max}} characters.",
+    "contactEmailRequired": "Contact email is required.",
+    "phoneInvalid": "Enter a valid phone number.",
+    "bioMin": "Bio must be at least {{min}} characters.",
+    "disclaimerRequired": "You must accept the quality disclaimer.",
+    "urlHttps": "Must be a valid https URL.",
+    "urlInvalid": "Must be a valid URL.",
+    "mediaKindRequired": "Media kind is required.",
+    "urlRequired": "URL is required.",
+    "messageRequired": "Message is required.",
+    "messageTooLong": "Message is too long.",
+    "reasonTooLong": "Reason is too long.",
+    "attachmentUrlInvalid": "Attachment must be a valid URL.",
+    "imageRequired": "This image is required.",
+    "documentTypeRequired": "Document type is required.",
+    "statusRequired": "Status is required."
   }
 }

@@ -9,9 +9,10 @@ import { hasMinimumCategories } from '@/lib/talentCategories';
 import type { SyncTalentCategoryItem } from '@/api/types/talentCategory';
 import type { RoleApplicationTalentDetail } from '@/api/types/roleApplication';
 import type { TalentProfileMe } from '@/api/types/user';
-import { updateTalentProfileSchema, type UpdateTalentProfileSchema } from '@/schemas/profile';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
+import { buildUpdateTalentProfileSchema, type UpdateTalentProfileSchema } from '@/schemas/profile';
+import { useLocalizedYupResolver } from '@/hooks/useLocalizedYupResolver';
+import { useRevalidateFormOnLanguageChange } from '@/hooks/useRevalidateFormOnLanguageChange';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -23,19 +24,23 @@ export function ProfileBasicSection({
   profile: TalentProfileMe;
   application?: RoleApplicationTalentDetail | null;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [categoryPayload, setCategoryPayload] = useState<SyncTalentCategoryItem[]>([]);
   const [updateProfile, { isLoading: savingProfile }] = useUpdateTalentProfileMutation();
   const [syncProfileCategories, { isLoading: savingCategories }] =
     useSyncTalentProfileCategoriesMutation();
+
+  const profileSchema = useMemo(() => buildUpdateTalentProfileSchema(t), [t, i18n.language]);
+  const profileResolver = useLocalizedYupResolver(profileSchema);
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
+    trigger,
   } = useForm<UpdateTalentProfileSchema>({
-    resolver: yupResolver(updateTalentProfileSchema) as never,
+    resolver: profileResolver as never,
     defaultValues: {
       stage_name: '',
       bio: '',
@@ -45,6 +50,8 @@ export function ProfileBasicSection({
       location_public: false,
     },
   });
+
+  useRevalidateFormOnLanguageChange(trigger);
 
   useEffect(() => {
     reset({

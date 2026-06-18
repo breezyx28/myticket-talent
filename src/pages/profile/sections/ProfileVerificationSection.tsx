@@ -12,10 +12,11 @@ import { readApiErrorMessage } from '@/lib/apiErrors';
 import { canEditTalentApplication } from '@/lib/roleApplicationEdit';
 import type { RoleApplicationDetail } from '@/api/types/roleApplication';
 import type { TalentProfileMe } from '@/api/types/user';
-import { talentApplicationPatchSchema, type TalentApplicationPatchSchema } from '@/schemas';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { buildTalentApplicationPatchSchema, type TalentApplicationPatchSchema } from '@/schemas';
+import { useLocalizedYupResolver } from '@/hooks/useLocalizedYupResolver';
+import { useRevalidateFormOnLanguageChange } from '@/hooks/useRevalidateFormOnLanguageChange';
 import { CheckCircle2, XCircle } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -26,7 +27,7 @@ export function ProfileVerificationSection({
   profile: TalentProfileMe;
   applicationDetail?: RoleApplicationDetail | null;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const application = applicationDetail?.talent_application;
   const media = application?.media ?? [];
   const canEdit = canEditTalentApplication(applicationDetail?.status);
@@ -39,15 +40,21 @@ export function ProfileVerificationSection({
     mediaCount: media.length,
   });
 
+  const patchSchema = useMemo(() => buildTalentApplicationPatchSchema(t), [t, i18n.language]);
+  const patchResolver = useLocalizedYupResolver(patchSchema);
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
+    trigger,
   } = useForm<TalentApplicationPatchSchema>({
-    resolver: yupResolver(talentApplicationPatchSchema) as never,
+    resolver: patchResolver as never,
     defaultValues: { certificate_name: '', accepted_quality_disclaimer: false },
   });
+
+  useRevalidateFormOnLanguageChange(trigger);
 
   useEffect(() => {
     reset({
@@ -142,7 +149,7 @@ export function ProfileVerificationSection({
       ) : (
         <section className="rounded-3xl border border-ink-10 bg-white p-6 shadow-card-sm">
           <Field label={t('profile.certificateName')}>
-            <TextInput value={application?.certificate_name ?? '—'} readOnly disabled className="bg-ink-5/50" />
+            <TextInput value={application?.certificate_name ?? t('common.empty')} readOnly disabled className="bg-ink-5/50" />
           </Field>
           <p className="mt-3 text-[12px] text-ink-40">{t('profile.verificationLocked')}</p>
         </section>

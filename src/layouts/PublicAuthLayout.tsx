@@ -1,4 +1,5 @@
 import { PageTransition } from '@/components/layout/PageTransition';
+import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 import { Mic2 } from 'lucide-react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -21,7 +22,7 @@ export function PublicAuthLayout() {
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-lemon text-ink">
             <Mic2 size={20} />
           </span>
-          MyTicket <span className="text-coral">Talent</span>
+          {t('brand.product')} <span className="text-coral">{t('brand.talent')}</span>
         </div>
         <div className="relative">
           <p className="text-[32px] font-extrabold leading-tight text-white">{t('auth.brandTagline')}</p>
@@ -31,10 +32,15 @@ export function PublicAuthLayout() {
         </div>
       </div>
 
-      <div className="flex min-h-dvh flex-col justify-center px-6 py-16 lg:px-12">
-        <PageTransition key={location.pathname}>
-          <Outlet />
-        </PageTransition>
+      <div className="relative flex min-h-dvh flex-col">
+        <div className="absolute end-4 top-4 z-10 sm:end-6 sm:top-6">
+          <LanguageSwitcher variant="compact" />
+        </div>
+        <div className="flex flex-1 flex-col justify-center px-6 py-16 lg:px-12">
+          <PageTransition key={location.pathname}>
+            <Outlet />
+          </PageTransition>
+        </div>
       </div>
     </div>
   );

@@ -43,7 +43,9 @@ export function ProfilePortfolioSection({
               className="h-28 w-28 rounded-3xl object-cover ring-2 ring-ink-10"
             />
           ) : (
-            <div className="flex h-28 w-28 items-center justify-center rounded-3xl bg-ink-5 text-ink-40">—</div>
+            <div className="flex h-28 w-28 items-center justify-center rounded-3xl bg-ink-5 text-ink-40">
+              {t('common.empty')}
+            </div>
           )}
           <FileUploadButton
             label={t('profile.uploadHeadshot')}
