@@ -18,7 +18,7 @@ import {
 } from '@/api/endpoints';
 import { OAUTH_REDIRECT_KEY, OAUTH_STATE_KEY } from '@/lib/oauth';
 import { authErrorMessage, isTwoFactorRequiredError } from '@/lib/authErrors';
-import { normalizeUserMe, parseAuthResponse, pickUserRole } from '@/lib/authMapper';
+import { normalizeUserMe, parseAuthResponse, pickUserRole, isTalentDashboardRole } from '@/lib/authMapper';
 import { disconnectEcho } from '@/lib/realtime/echo';
 import { resolvePostLoginRoute } from '@/lib/resolvePostLoginRoute';
 import type { AppDispatch } from '@/store';
@@ -100,6 +100,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return { ok: false, reason: 'invalid', message: parsed.twoFactor.message };
         }
 
+        const role = parsed.user ? pickUserRole(parsed.user.roles, parsed.user.role ?? null, 'guest') : null;
+        if (!isTalentDashboardRole(role)) {
+          return { ok: false, reason: 'access_denied', message: i18n.t('auth.talentOnly') };
+        }
+
         persistAuthCookies({
           accessToken: parsed.token,
           refreshToken: parsed.refresh_token,
@@ -108,13 +113,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         const redirectTo = await resolveRedirectAfterLogin(dispatch);
-        const role = parsed.user ? pickUserRole(parsed.user.roles, parsed.user.role ?? null, 'guest') : null;
-        if (role === 'organizer' || role === 'vendor') {
-          clearTokens();
-          dispatch(baseApi.util.resetApiState());
-          return { ok: false, reason: 'access_denied' };
-        }
-
         return { ok: true, redirectTo };
       } catch (err) {
         if (isTwoFactorRequiredError(err)) {
@@ -178,6 +176,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(parsed.twoFactor.message ?? i18n.t('auth.twoFactorRequired'));
       }
 
+      const role = parsed.user ? pickUserRole(parsed.user.roles, parsed.user.role ?? null, 'guest') : null;
+      if (!isTalentDashboardRole(role)) {
+        throw new Error(i18n.t('auth.talentOnly'));
+      }
+
       persistAuthCookies({
         accessToken: parsed.token,
         refreshToken: parsed.refresh_token,
@@ -185,15 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userSnapshot: parsed.user,
       });
 
-      const redirectTo = await resolveRedirectAfterLogin(dispatch);
-      const role = parsed.user ? pickUserRole(parsed.user.roles, parsed.user.role ?? null, 'guest') : null;
-      if (role === 'organizer' || role === 'vendor') {
-        clearTokens();
-        dispatch(baseApi.util.resetApiState());
-        throw new Error(i18n.t('auth.talentOnly'));
-      }
-
-      return redirectTo;
+      return resolveRedirectAfterLogin(dispatch);
     },
     [dispatch, oauthCallbackMutation],
   );

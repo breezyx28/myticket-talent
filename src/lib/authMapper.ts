@@ -10,6 +10,11 @@ import { TwoFactorRequiredError } from '@/lib/authErrors';
 
 const VALID_ROLES: readonly UserRole[] = ['guest', 'talent', 'vendor', 'organizer'];
 
+/** Only approved talent accounts may use this dashboard. */
+export function isTalentDashboardRole(role: UserRole | string | null | undefined): boolean {
+  return role === 'talent';
+}
+
 export function pickUserRole(
   roles: string[] | undefined,
   singleRole: string | undefined | null,

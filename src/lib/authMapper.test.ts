@@ -1,7 +1,7 @@
 import type { AuthSuccessResponse } from '@/api/types/auth';
 import type { UserMe } from '@/api/types/user';
 import { describe, expect, it } from 'vitest';
-import { normalizeUserMe, parseAuthResponse, pickUserRole } from '@/lib/authMapper';
+import { normalizeUserMe, parseAuthResponse, pickUserRole, isTalentDashboardRole } from '@/lib/authMapper';
 import { TwoFactorRequiredError } from '@/lib/authErrors';
 
 describe('pickUserRole', () => {
@@ -15,6 +15,16 @@ describe('pickUserRole', () => {
 
   it('returns fallback for unknown roles', () => {
     expect(pickUserRole(['unknown'], null, 'guest')).toBe('guest');
+  });
+});
+
+describe('isTalentDashboardRole', () => {
+  it('allows only talent', () => {
+    expect(isTalentDashboardRole('talent')).toBe(true);
+    expect(isTalentDashboardRole('guest')).toBe(false);
+    expect(isTalentDashboardRole('vendor')).toBe(false);
+    expect(isTalentDashboardRole('organizer')).toBe(false);
+    expect(isTalentDashboardRole(null)).toBe(false);
   });
 });
 

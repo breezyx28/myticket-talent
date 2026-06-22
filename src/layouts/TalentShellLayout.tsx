@@ -44,7 +44,10 @@ export function TalentShellLayout() {
               </span>
             </NavLink>
           </div>
-          <UserMenu email={user?.email} onSignOut={() => void signOut()} />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <LanguageSwitcher variant="compact" persist />
+            <UserMenu email={user?.email} onSignOut={() => void signOut()} />
+          </div>
         </div>
       </header>
 
@@ -55,8 +58,7 @@ export function TalentShellLayout() {
             open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 rtl:translate-x-full rtl:lg:translate-x-0',
           )}
         >
-          <div className="mb-4 flex items-center justify-between lg:hidden">
-            <LanguageSwitcher variant="compact" persist />
+          <div className="mb-4 flex items-center justify-end lg:hidden">
             <button
               type="button"
               className="rounded-full p-2 hover:bg-ink-5"

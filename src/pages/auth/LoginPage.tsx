@@ -58,7 +58,7 @@ export function LoginPage() {
     setFormError(message);
   }
 
-  if (user && (user.role === 'talent' || user.role === 'guest')) {
+  if (user?.role === 'talent') {
     return <Navigate to={from} replace />;
   }
 
