@@ -98,6 +98,10 @@ export function LoginPage() {
       const { email, password } = getValues();
       const result = await signInWithOtp({ email, password, otp: values.otp });
       if (!result.ok) {
+        if (result.reason === 'access_denied') {
+          navigate('/access-denied', { replace: true });
+          return;
+        }
         if (result.message) {
           setApiFormError(result.message);
         } else {

@@ -1,4 +1,4 @@
-import type { AuthSuccessResponse } from '@/api/types/auth';
+import type { AuthSuccessResponse, RegisterResponse } from '@/api/types/auth';
 import type { UserMe } from '@/api/types/user';
 import { describe, expect, it } from 'vitest';
 import { normalizeUserMe, parseAuthResponse, pickUserRole, isTalentDashboardRole } from '@/lib/authMapper';
@@ -59,6 +59,27 @@ describe('parseAuthResponse', () => {
       expect(result.twoFactor).toBeInstanceOf(TwoFactorRequiredError);
       expect(result.twoFactor.challengeToken).toBe('challenge-1');
     }
+  });
+
+  it('parses register response with talent role', () => {
+    const payload: RegisterResponse = {
+      message: 'Registered',
+      user_id: 42,
+      role: 'talent',
+      token: 'reg-token',
+      refresh_token: 'reg-refresh',
+      expires_at: '2026-06-18T00:00:00Z',
+      user: {
+        id: 42,
+        email: 'talent@example.com',
+        full_name: 'New Talent',
+        role: 'talent',
+        roles: ['talent'],
+      },
+    };
+    const result = parseAuthResponse(payload);
+    expect('token' in result && result.token).toBe('reg-token');
+    expect('user' in result && result.user?.role).toBe('talent');
   });
 });
 

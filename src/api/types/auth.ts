@@ -47,6 +47,19 @@ export interface ResetPasswordRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  full_name: string;
+  role: 'talent';
+}
+
+export interface RegisterResponse extends AuthSuccessResponse {
+  message?: string;
+  user_id?: Id;
+  role?: string;
+}
+
 export interface AcknowledgementResponse {
   ok?: boolean;
   message?: string;

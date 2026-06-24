@@ -1,7 +1,8 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { cn } from '@/lib/utils';
-import { ChevronDown, LogOut, UserRound } from 'lucide-react';
+import { Bell, ChevronDown, LogOut, UserRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 export function UserMenu({
   email,
@@ -42,6 +43,15 @@ export function UserMenu({
               <p className="text-[10px] font-bold uppercase tracking-wide text-ink-40">{t('shell.talent')}</p>
             </div>
           ) : null}
+          <DropdownMenu.Item asChild>
+            <Link
+              to="/notifications"
+              className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-medium text-ink outline-none hover:bg-ink-5 focus:bg-ink-5"
+            >
+              <Bell size={16} />
+              {t('notifications.title')}
+            </Link>
+          </DropdownMenu.Item>
           <DropdownMenu.Separator className="my-1 h-px bg-ink-10" />
           <DropdownMenu.Item
             className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-medium text-coral outline-none hover:bg-coral/5 focus:bg-coral/5"

@@ -31,6 +31,7 @@ export const apiTagTypes = [
   'GovernmentIdVerification',
   'TalentCategory',
   'Conversation',
+  'Notification',
 ] as const;
 
 export type ApiTagType = (typeof apiTagTypes)[number];

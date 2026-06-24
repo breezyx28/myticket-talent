@@ -19,6 +19,14 @@ const ForgotPasswordPage = lazy(() =>
   import('@/pages/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })),
 );
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() =>
+  import('@/pages/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })),
+);
+const NotificationsPage = lazy(() =>
+  import('@/pages/notifications/NotificationsPage').then((m) => ({
+    default: m.NotificationsPage,
+  })),
+);
 const OAuthCallbackPage = lazy(() =>
   import('@/pages/auth/OAuthCallbackPage').then((m) => ({ default: m.OAuthCallbackPage })),
 );
@@ -73,6 +81,7 @@ export function App() {
         <Routes>
           <Route element={<PublicAuthLayout />}>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/auth/oauth/:provider/callback" element={<OAuthCallbackPage />} />
@@ -97,6 +106,7 @@ export function App() {
                 <Route path="/engagements" element={<EngagementsPage />} />
                 <Route path="/engagements/:id" element={<EngagementDetailPage />} />
                 <Route path="/ratings" element={<RatingsPage />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/preview" element={<PublicProfilePreviewPage />} />
               </Route>
             </Route>

@@ -67,3 +67,23 @@ export function buildOtpSchema(t: SchemaT) {
 }
 
 export type OtpSchema = yup.InferType<ReturnType<typeof buildOtpSchema>>;
+
+export function buildRegisterSchema(t: SchemaT) {
+  return yup
+    .object({
+      full_name: yup.string().trim().min(2, t('validation.fullNameMin')).required(t('validation.fullNameRequired')),
+      email: yup
+        .string()
+        .trim()
+        .email(t('validation.emailInvalid'))
+        .required(t('validation.emailRequired')),
+      password: yup
+        .string()
+        .min(8, t('validation.passwordMin', { min: 8 }))
+        .max(128, t('validation.passwordMax'))
+        .required(t('validation.passwordRequired')),
+    })
+    .strict();
+}
+
+export type RegisterSchema = yup.InferType<ReturnType<typeof buildRegisterSchema>>;

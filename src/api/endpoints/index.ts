@@ -17,3 +17,4 @@ export * from './talents';
 export * from './reference';
 export * from './governmentId';
 export * from './talentCategories';
+export * from './notifications';

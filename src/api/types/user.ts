@@ -11,6 +11,7 @@ export interface UserMe {
   display_name?: string | null;
   bio?: string | null;
   profile_image_url?: string | null;
+  profile_image?: string | null;
   avatar_url?: string | null;
   email_verified_at?: Iso8601 | null;
   phone_verified_at?: Iso8601 | null;

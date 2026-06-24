@@ -1,4 +1,5 @@
 import { PageTransition } from '@/components/layout/PageTransition';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 import { UserMenu } from '@/components/ui/UserMenu';
 import { NAV_MAIN, NAV_MOBILE_TABS } from '@/config/nav';
@@ -46,6 +47,7 @@ export function TalentShellLayout() {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher variant="compact" persist />
+            <NotificationBell />
             <UserMenu email={user?.email} onSignOut={() => void signOut()} />
           </div>
         </div>

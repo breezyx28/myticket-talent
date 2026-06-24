@@ -15,6 +15,7 @@ import {
   useLogoutMutation,
   useOauthCallbackMutation,
   useOauthStartMutation,
+  useRegisterMutation,
 } from '@/api/endpoints';
 import { OAUTH_REDIRECT_KEY, OAUTH_STATE_KEY } from '@/lib/oauth';
 import { authErrorMessage, isTwoFactorRequiredError } from '@/lib/authErrors';
@@ -71,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const [loginMutation] = useLoginMutation();
+  const [registerMutation] = useRegisterMutation();
   const [logoutMutation] = useLogoutMutation();
   const [oauthStartMutation] = useOauthStartMutation();
   const [oauthCallbackMutation] = useOauthCallbackMutation();
@@ -131,6 +133,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = useCallback(
     async (email: string, password: string) => performLogin({ email: email.trim(), password }),
     [performLogin],
+  );
+
+  const completeAuthSession = useCallback(
+    async (parsed: ReturnType<typeof parseAuthResponse>) => {
+      if ('twoFactor' in parsed) {
+        if (parsed.twoFactor.challengeToken && parsed.twoFactor.challengeToken !== '__pending__') {
+          return {
+            ok: false as const,
+            reason: 'two_factor_required' as const,
+            challengeToken: parsed.twoFactor.challengeToken,
+          };
+        }
+        return {
+          ok: false as const,
+          reason: 'invalid' as const,
+          message: parsed.twoFactor.message,
+        };
+      }
+
+      const role = parsed.user ? pickUserRole(parsed.user.roles, parsed.user.role ?? null, 'guest') : null;
+      if (!isTalentDashboardRole(role)) {
+        return { ok: false as const, reason: 'access_denied' as const, message: i18n.t('auth.talentOnly') };
+      }
+
+      persistAuthCookies({
+        accessToken: parsed.token,
+        refreshToken: parsed.refresh_token,
+        expiresAt: parsed.expires_at,
+        userSnapshot: parsed.user,
+      });
+
+      const redirectTo = await resolveRedirectAfterLogin(dispatch);
+      return { ok: true as const, redirectTo };
+    },
+    [dispatch],
+  );
+
+  const signUp = useCallback(
+    async (values: { email: string; password: string; full_name: string }): Promise<SignInResult> => {
+      try {
+        const response = await registerMutation({
+          email: values.email.trim(),
+          password: values.password,
+          full_name: values.full_name.trim(),
+          role: 'talent',
+        }).unwrap();
+        const parsed = parseAuthResponse(response);
+        return completeAuthSession(parsed);
+      } catch (err) {
+        return { ok: false, reason: 'invalid', message: authErrorMessage(err) };
+      }
+    },
+    [completeAuthSession, registerMutation],
   );
 
   const signInWithOtp = useCallback(
@@ -212,6 +267,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       talentApplication,
       isLoading,
       signIn,
+      signUp,
       signInWithOtp,
       signInWithOAuth,
       completeOAuthCallback,
@@ -222,6 +278,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       talentApplication,
       isLoading,
       signIn,
+      signUp,
       signInWithOtp,
       signInWithOAuth,
       completeOAuthCallback,

@@ -12,7 +12,9 @@
     "signOut": "تسجيل الخروج",
     "language": "اللغة",
     "empty": "—",
-    "notAvailable": "غير متاح"
+    "notAvailable": "غير متاح",
+    "previous": "السابق",
+    "next": "التالي"
   },
   "locale": {
     "en": "English",
@@ -78,7 +80,19 @@
     "oauthStateMismatch": "عدم تطابق حالة OAuth. حاول تسجيل الدخول مرة أخرى.",
     "talentOnly": "هذه اللوحة مخصصة لحسابات المواهب فقط.",
     "signInIncomplete": "تسجيل الدخول غير مكتمل؛ مطلوب التحقق.",
-    "oauthProvider": "مزود OAuth"
+    "oauthProvider": "مزود OAuth",
+    "registerTitle": "إنشاء حساب موهبة",
+    "register": "إنشاء حساب",
+    "fullName": "الاسم الكامل",
+    "hasAccount": "لديك حساب بالفعل؟"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "empty": "لا توجد إشعارات جديدة.",
+    "viewAll": "عرض الكل",
+    "all": "الكل",
+    "unread": "غير مقروء",
+    "bellAria": "الإشعارات"
   },
   "application": {
     "step_identity": "الهوية",
@@ -308,6 +322,8 @@
     "attachmentUrlInvalid": "يجب أن يكون المرفق رابطاً صالحاً.",
     "imageRequired": "هذه الصورة مطلوبة.",
     "documentTypeRequired": "نوع الوثيقة مطلوب.",
-    "statusRequired": "الحالة مطلوبة."
+    "statusRequired": "الحالة مطلوبة.",
+    "fullNameRequired": "الاسم الكامل مطلوب.",
+    "fullNameMin": "يجب أن يكون الاسم الكامل {{min}} أحرف على الأقل."
   }
 }

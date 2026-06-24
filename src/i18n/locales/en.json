@@ -12,7 +12,9 @@
     "signOut": "Sign out",
     "language": "Language",
     "empty": "—",
-    "notAvailable": "Not available"
+    "notAvailable": "Not available",
+    "previous": "Previous",
+    "next": "Next"
   },
   "locale": {
     "en": "English",
@@ -78,7 +80,19 @@
     "oauthStateMismatch": "OAuth state mismatch. Try signing in again.",
     "talentOnly": "This dashboard is for talent accounts only.",
     "signInIncomplete": "Sign-in is incomplete; verification required.",
-    "oauthProvider": "OAuth provider"
+    "oauthProvider": "OAuth provider",
+    "registerTitle": "Create your talent account",
+    "register": "Create account",
+    "fullName": "Full name",
+    "hasAccount": "Already have an account?"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "You're all caught up.",
+    "viewAll": "View all",
+    "all": "All",
+    "unread": "Unread",
+    "bellAria": "Notifications"
   },
   "application": {
     "step_identity": "Identity",
@@ -308,6 +322,8 @@
     "attachmentUrlInvalid": "Attachment must be a valid URL.",
     "imageRequired": "This image is required.",
     "documentTypeRequired": "Document type is required.",
-    "statusRequired": "Status is required."
+    "statusRequired": "Status is required.",
+    "fullNameRequired": "Full name is required.",
+    "fullNameMin": "Full name must be at least {{min}} characters."
   }
 }

@@ -16,6 +16,7 @@ export interface AuthContextValue {
   talentApplication: RoleApplicationSummary | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<SignInResult>;
+  signUp: (values: { email: string; password: string; full_name: string }) => Promise<SignInResult>;
   signInWithOtp: (params: {
     email?: string;
     phone?: string;
